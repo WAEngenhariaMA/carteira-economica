@@ -1,0 +1,38 @@
+import { Brain, Database, Landmark, LockKeyhole, PieChart } from "lucide-react";
+import { IconBadge, Panel } from "../components/ui/FinanceUI";
+import type { WorkspacePageProps } from "../app/routes";
+
+function ConfigRow({ icon, title, value }: { icon: typeof Database; title: string; value: string }) {
+  return (
+    <article className="config-row">
+      <IconBadge icon={icon} tone="neutral" />
+      <div>
+        <strong>{title}</strong>
+        <span>{value}</span>
+      </div>
+    </article>
+  );
+}
+
+export function ConfiguracoesPage({ workspace }: WorkspacePageProps) {
+  return (
+    <div className="dashboard-grid">
+      <Panel title="Infraestrutura">
+        <div className="config-list">
+          <ConfigRow icon={Database} title="Supabase" value="Ativo com usuario autenticado e RLS" />
+          <ConfigRow icon={LockKeyhole} title="Autenticacao" value={`Perfil: ${workspace.profile.ownerName}`} />
+          <ConfigRow icon={Landmark} title="Modelo de dados" value="Schema SQL com tabelas financeiras, auditoria e qualidade" />
+          <ConfigRow icon={PieChart} title="BI financeiro" value="Motor local preparado para Edge Functions" />
+        </div>
+      </Panel>
+      <Panel title="Proximas Funcoes IA">
+        <div className="roadmap-list">
+          <span><Brain size={16} /> classify-transaction</span>
+          <span><Brain size={16} /> generate-diagnostic</span>
+          <span><Brain size={16} /> generate-action-plan</span>
+          <span><Brain size={16} /> generate-report-text</span>
+        </div>
+      </Panel>
+    </div>
+  );
+}
