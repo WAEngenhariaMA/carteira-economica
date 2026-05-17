@@ -26,6 +26,21 @@ export function RiskPill({ level, label }: { level: string; label?: string }) {
   return <span className={clsx("risk-pill", `risk-${level}`)}>{label ?? labels[level] ?? level}</span>;
 }
 
+export function StatusPill({ status }: { status: string }) {
+  const labels: Record<string, string> = {
+    open: "Aberta",
+    closed: "Fechada",
+    paid: "Paga",
+    overdue: "Atrasada",
+    scheduled: "Agendada",
+    planned: "Planejada",
+    running: "Em andamento",
+    done: "Concluida",
+  };
+
+  return <span className={clsx("risk-pill", `status-${status}`)}>{labels[status] ?? status}</span>;
+}
+
 export function Panel({
   title,
   action,

@@ -1,17 +1,37 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ActionItem } from "../../types/finance";
 
-export function ActionForm({ onSubmit }: { onSubmit: (action: Omit<ActionItem, "id">) => Promise<void> }) {
+export function ActionForm({
+  onSubmit,
+  initialValue,
+  onCancel,
+}: {
+  onSubmit: (action: Omit<ActionItem, "id">) => Promise<void>;
+  initialValue?: ActionItem | null;
+  onCancel?: () => void;
+}) {
   const [form, setForm] = useState({
-    title: "",
-    reason: "",
-    priority: "high",
-    horizon: "30 dias",
-    expectedSavings: "",
-    difficulty: "media",
-    status: "planned",
+    title: initialValue?.title ?? "",
+    reason: initialValue?.reason ?? "",
+    priority: initialValue?.priority ?? "high",
+    horizon: initialValue?.horizon ?? "30 dias",
+    expectedSavings: initialValue ? String(initialValue.expectedSavings) : "",
+    difficulty: initialValue?.difficulty ?? "media",
+    status: initialValue?.status ?? "planned",
   });
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setForm({
+      title: initialValue?.title ?? "",
+      reason: initialValue?.reason ?? "",
+      priority: initialValue?.priority ?? "high",
+      horizon: initialValue?.horizon ?? "30 dias",
+      expectedSavings: initialValue ? String(initialValue.expectedSavings) : "",
+      difficulty: initialValue?.difficulty ?? "media",
+      status: initialValue?.status ?? "planned",
+    });
+  }, [initialValue]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -26,7 +46,9 @@ export function ActionForm({ onSubmit }: { onSubmit: (action: Omit<ActionItem, "
         difficulty: form.difficulty as ActionItem["difficulty"],
         status: form.status as ActionItem["status"],
       });
-      setForm({ title: "", reason: "", priority: "high", horizon: "30 dias", expectedSavings: "", difficulty: "media", status: "planned" });
+      if (!initialValue) {
+        setForm({ title: "", reason: "", priority: "high", horizon: "30 dias", expectedSavings: "", difficulty: "media", status: "planned" });
+      }
     } finally {
       setSaving(false);
     }
@@ -44,7 +66,7 @@ export function ActionForm({ onSubmit }: { onSubmit: (action: Omit<ActionItem, "
       </label>
       <label>
         Prioridade
-        <select value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value })}>
+        <select value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value as ActionItem["priority"] })}>
           <option value="urgent">Urgente</option>
           <option value="high">Alta</option>
           <option value="medium">Media</option>
@@ -53,7 +75,7 @@ export function ActionForm({ onSubmit }: { onSubmit: (action: Omit<ActionItem, "
       </label>
       <label>
         Prazo
-        <select value={form.horizon} onChange={(event) => setForm({ ...form, horizon: event.target.value })}>
+        <select value={form.horizon} onChange={(event) => setForm({ ...form, horizon: event.target.value as ActionItem["horizon"] })}>
           <option value="7 dias">7 dias</option>
           <option value="30 dias">30 dias</option>
           <option value="60 dias">60 dias</option>
@@ -64,9 +86,32 @@ export function ActionForm({ onSubmit }: { onSubmit: (action: Omit<ActionItem, "
         Economia estimada
         <input value={form.expectedSavings} type="number" min="0" onChange={(event) => setForm({ ...form, expectedSavings: event.target.value })} required />
       </label>
-      <button className="primary-button" type="submit" disabled={saving}>
-        {saving ? "Salvando..." : "Salvar acao"}
-      </button>
+      <label>
+        Dificuldade
+        <select value={form.difficulty} onChange={(event) => setForm({ ...form, difficulty: event.target.value as ActionItem["difficulty"] })}>
+          <option value="baixa">Baixa</option>
+          <option value="media">Media</option>
+          <option value="alta">Alta</option>
+        </select>
+      </label>
+      <label>
+        Status
+        <select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as ActionItem["status"] })}>
+          <option value="planned">Planejada</option>
+          <option value="running">Em andamento</option>
+          <option value="done">Concluida</option>
+        </select>
+      </label>
+      <div className="form-actions">
+        <button className="primary-button" type="submit" disabled={saving}>
+          {saving ? "Salvando..." : initialValue ? "Atualizar acao" : "Salvar acao"}
+        </button>
+        {initialValue && onCancel && (
+          <button className="ghost-button" type="button" onClick={onCancel}>
+            Cancelar edicao
+          </button>
+        )}
+      </div>
     </form>
   );
 }

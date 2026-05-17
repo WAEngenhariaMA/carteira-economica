@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Bar } from "react-chartjs-2";
 import { CardForm } from "../components/forms/CardForm";
 import { chartOptions } from "../components/charts/chartConfig";
@@ -5,9 +6,11 @@ import { IconBadge, Panel, RiskPill } from "../components/ui/FinanceUI";
 import { formatMoney, formatPercent } from "../lib/formatters";
 import { cardService } from "../services/cardService";
 import type { WorkspacePageProps } from "../app/routes";
-import { CreditCard, Trash2 } from "lucide-react";
+import type { Card } from "../types/finance";
+import { CreditCard, Pencil, Trash2 } from "lucide-react";
 
 export function CartoesPage({ userId, workspace, refresh }: WorkspacePageProps) {
+  const [editing, setEditing] = useState<Card | null>(null);
   const invoiceChart = {
     labels: workspace.cards.map((card) => card.bank),
     datasets: [
@@ -18,10 +21,17 @@ export function CartoesPage({ userId, workspace, refresh }: WorkspacePageProps) 
 
   return (
     <div className="screen-stack">
-      <Panel title="Cadastrar Cartao">
+      <Panel title={editing ? "Editar Cartao" : "Cadastrar Cartao"}>
         <CardForm
+          initialValue={editing}
+          onCancel={() => setEditing(null)}
           onSubmit={async (card) => {
-            await cardService.create(userId, card);
+            if (editing) {
+              await cardService.update(userId, editing.id, card);
+              setEditing(null);
+            } else {
+              await cardService.create(userId, card);
+            }
             refresh();
           }}
         />
@@ -48,16 +58,23 @@ export function CartoesPage({ userId, workspace, refresh }: WorkspacePageProps) 
                     <span>{formatPercent(ratio)} do limite</span>
                     <div><i style={{ width: `${Math.min(ratio * 100, 100)}%` }} /></div>
                   </div>
-                  <button
-                    className="ghost-button icon-only"
-                    type="button"
-                    onClick={async () => {
-                      await cardService.remove(userId, card.id);
-                      refresh();
-                    }}
-                  >
-                    <Trash2 size={15} />
-                  </button>
+                  <div className="card-actions">
+                    <button className="ghost-button icon-only" type="button" aria-label="Editar cartao" onClick={() => setEditing(card)}>
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      className="ghost-button icon-only"
+                      type="button"
+                      aria-label="Excluir cartao"
+                      onClick={async () => {
+                        await cardService.remove(userId, card.id);
+                        if (editing?.id === card.id) setEditing(null);
+                        refresh();
+                      }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </article>
               );
             })}
@@ -78,6 +95,7 @@ export function CartoesPage({ userId, workspace, refresh }: WorkspacePageProps) 
                 <th>Vencimento</th>
                 <th>Parcelas futuras</th>
                 <th>Risco</th>
+                <th>Acoes</th>
               </tr>
             </thead>
             <tbody>
@@ -94,6 +112,23 @@ export function CartoesPage({ userId, workspace, refresh }: WorkspacePageProps) 
                     <td>Dia {card.dueDay}</td>
                     <td>{formatMoney(card.futureInstallments.reduce((acc, value) => acc + value, 0))}</td>
                     <td><RiskPill level={ratio > 0.45 ? "critical" : ratio > 0.3 ? "risk" : "attention"} /></td>
+                    <td className="table-actions">
+                      <button className="ghost-button icon-only" type="button" aria-label="Editar cartao" onClick={() => setEditing(card)}>
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        className="ghost-button icon-only"
+                        type="button"
+                        aria-label="Excluir cartao"
+                        onClick={async () => {
+                          await cardService.remove(userId, card.id);
+                          if (editing?.id === card.id) setEditing(null);
+                          refresh();
+                        }}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </td>
                   </tr>
                 );
               })}

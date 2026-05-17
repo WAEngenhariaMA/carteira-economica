@@ -1,6 +1,11 @@
 import { useState } from "react";
 import type { FinancialProfile } from "../../types/finance";
 
+function optionalMoney(value: string) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 export function ProfileSetupForm({ onSubmit }: { onSubmit: (profile: Omit<FinancialProfile, "id">) => Promise<void> }) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -21,10 +26,10 @@ export function ProfileSetupForm({ onSubmit }: { onSubmit: (profile: Omit<Financ
       await onSubmit({
         ownerName: form.ownerName,
         householdName: form.householdName,
-        monthlyIncomeTarget: Number(form.monthlyIncomeTarget),
-        currentReserve: Number(form.currentReserve),
-        reserveTarget: Number(form.reserveTarget),
-        idealIncome: Number(form.idealIncome),
+        monthlyIncomeTarget: optionalMoney(form.monthlyIncomeTarget),
+        currentReserve: optionalMoney(form.currentReserve),
+        reserveTarget: optionalMoney(form.reserveTarget),
+        idealIncome: optionalMoney(form.idealIncome),
         riskTolerance: form.riskTolerance as FinancialProfile["riskTolerance"],
         preferredRule: form.preferredRule as FinancialProfile["preferredRule"],
       });
@@ -45,7 +50,7 @@ export function ProfileSetupForm({ onSubmit }: { onSubmit: (profile: Omit<Financ
       </label>
       <label>
         Renda alvo mensal
-        <input value={form.monthlyIncomeTarget} type="number" min="0" onChange={(event) => setForm({ ...form, monthlyIncomeTarget: event.target.value })} required />
+        <input value={form.monthlyIncomeTarget} type="number" min="0" placeholder="Opcional" onChange={(event) => setForm({ ...form, monthlyIncomeTarget: event.target.value })} />
       </label>
       <label>
         Reserva atual
@@ -53,11 +58,11 @@ export function ProfileSetupForm({ onSubmit }: { onSubmit: (profile: Omit<Financ
       </label>
       <label>
         Meta de reserva
-        <input value={form.reserveTarget} type="number" min="0" onChange={(event) => setForm({ ...form, reserveTarget: event.target.value })} required />
+        <input value={form.reserveTarget} type="number" min="0" placeholder="Opcional" onChange={(event) => setForm({ ...form, reserveTarget: event.target.value })} />
       </label>
       <label>
         Renda ideal
-        <input value={form.idealIncome} type="number" min="0" onChange={(event) => setForm({ ...form, idealIncome: event.target.value })} required />
+        <input value={form.idealIncome} type="number" min="0" placeholder="Opcional" onChange={(event) => setForm({ ...form, idealIncome: event.target.value })} />
       </label>
       <button className="primary-button" type="submit" disabled={saving}>
         {saving ? "Criando..." : "Criar perfil financeiro"}

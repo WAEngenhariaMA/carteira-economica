@@ -568,26 +568,76 @@ button {
   text-transform: uppercase;
 }
 
+.risk-pill.risk-excellent,
+.risk-pill.risk-healthy,
 .risk-excellent,
 .risk-healthy {
   color: var(--green);
   background: var(--green-soft);
 }
 
+.risk-pill.risk-attention,
 .risk-attention {
   color: var(--blue);
   background: var(--blue-soft);
 }
 
+.risk-pill.risk-risk,
 .risk-risk {
   color: var(--amber);
   background: var(--amber-soft);
 }
 
+.risk-pill.risk-critical,
+.risk-pill.risk-emergency,
 .risk-critical,
 .risk-emergency {
   color: var(--red);
   background: var(--red-soft);
+}
+
+.risk-pill.status-open,
+.status-open {
+  color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.risk-pill.status-closed,
+.status-closed {
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+
+.risk-pill.status-paid,
+.status-paid {
+  color: var(--green);
+  background: var(--green-soft);
+}
+
+.risk-pill.status-overdue,
+.status-overdue {
+  color: var(--red);
+  background: var(--red-soft);
+}
+
+.risk-pill.status-scheduled,
+.risk-pill.status-planned,
+.status-scheduled,
+.status-planned {
+  color: var(--muted);
+  background: #edf2f7;
+}
+
+.risk-pill.status-running,
+.status-running {
+  color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.risk-pill.status-done,
+.status-done {
+  color: var(--green);
+  background: var(--green-soft);
 }
 
 .insight-list,
@@ -634,13 +684,20 @@ button {
 }
 
 .credit-row {
-  grid-template-columns: minmax(170px, 1.15fr) 110px minmax(150px, 1fr) 110px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(86px, 0.5fr) minmax(120px, 0.9fr) 92px;
 }
 
 .credit-main {
   display: flex;
+  min-width: 0;
   gap: 12px;
   align-items: center;
+}
+
+.credit-main div,
+.credit-metric,
+.credit-progress {
+  min-width: 0;
 }
 
 .credit-main strong,
@@ -648,6 +705,9 @@ button {
 .credit-metric span,
 .credit-metric strong {
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .credit-main strong,
@@ -672,6 +732,24 @@ button {
   overflow: hidden;
   background: #e8eef5;
   border-radius: 999px;
+}
+
+.card-actions,
+.goal-actions,
+.form-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.card-actions {
+  justify-content: flex-end;
+}
+
+.goal-actions,
+.form-actions {
+  align-self: end;
 }
 
 .credit-progress i,
@@ -752,6 +830,12 @@ button {
   font-size: 12px;
 }
 
+.data-table .risk-pill {
+  display: inline-flex !important;
+  width: fit-content;
+  margin-top: 0;
+}
+
 .data-table tr:last-child td {
   border-bottom: 0;
 }
@@ -759,6 +843,16 @@ button {
 .data-table .num {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+.table-actions {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table-actions .ghost-button + .ghost-button {
+  margin-left: 8px;
 }
 
 .tag {
@@ -1099,6 +1193,52 @@ button {
   box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
 }
 
+.installment-form {
+  grid-template-columns: repeat(4, minmax(170px, 1fr));
+}
+
+.installment-preview {
+  min-height: 40px;
+  display: grid;
+  gap: 2px;
+  padding: 9px 11px;
+  color: var(--muted);
+  background: var(--teal-soft);
+  border: 1px solid #bfe6de;
+  border-radius: 8px;
+}
+
+.installment-preview span,
+.installment-preview small {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.installment-preview strong {
+  color: var(--teal);
+  font-size: 14px;
+}
+
+.form-empty {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.form-empty strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.form-empty span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .check-line {
   grid-template-columns: 18px 1fr !important;
   align-items: center;
@@ -1383,7 +1523,8 @@ button {
 
   .kpi-grid,
   .kpi-grid.compact,
-  .scenario-grid {
+  .scenario-grid,
+  .installment-form {
     grid-template-columns: 1fr;
   }
 

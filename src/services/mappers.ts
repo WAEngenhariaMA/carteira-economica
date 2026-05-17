@@ -24,8 +24,12 @@ export function mapProfile(row: any): FinancialProfile {
   };
 }
 
-export function profileToRow(profile: Omit<FinancialProfile, "id">) {
-  return {
+function withoutUndefined<T extends Record<string, unknown>>(value: T) {
+  return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined));
+}
+
+export function profileToRow(profile: Partial<Omit<FinancialProfile, "id">>) {
+  return withoutUndefined({
     owner_name: profile.ownerName,
     household_name: profile.householdName,
     monthly_income_target: profile.monthlyIncomeTarget,
@@ -34,7 +38,7 @@ export function profileToRow(profile: Omit<FinancialProfile, "id">) {
     ideal_income: profile.idealIncome,
     risk_tolerance: profile.riskTolerance,
     preferred_rule: profile.preferredRule,
-  };
+  });
 }
 
 export function mapTransaction(row: any): Transaction {
@@ -63,7 +67,7 @@ export function mapTransaction(row: any): Transaction {
 }
 
 export function transactionToRow(transaction: Omit<Transaction, "id"> | Partial<Transaction>) {
-  return {
+  return withoutUndefined({
     transaction_date: transaction.date,
     competence: transaction.competence,
     description: transaction.description,
@@ -76,14 +80,14 @@ export function transactionToRow(transaction: Omit<Transaction, "id"> | Partial<
     fixed: transaction.fixed,
     payment_rail: transaction.paymentRail,
     bank: transaction.bank,
-    card_id: transaction.cardId ?? null,
-    installment: transaction.installment ?? null,
-    total_installments: transaction.totalInstallments ?? null,
+    card_id: "cardId" in transaction ? transaction.cardId ?? null : undefined,
+    installment: "installment" in transaction ? transaction.installment ?? null : undefined,
+    total_installments: "totalInstallments" in transaction ? transaction.totalInstallments ?? null : undefined,
     status: transaction.status,
     priority: transaction.priority,
     impact: transaction.impact,
     observations: transaction.notes,
-  };
+  });
 }
 
 export function mapCard(row: any, currentInvoice = 0, previousInvoice = 0, futureInstallments: number[] = []): Card {
@@ -102,14 +106,14 @@ export function mapCard(row: any, currentInvoice = 0, previousInvoice = 0, futur
 }
 
 export function cardToRow(card: Omit<Card, "id" | "currentInvoice" | "previousInvoice" | "futureInstallments"> | Partial<Card>) {
-  return {
+  return withoutUndefined({
     name: card.name,
     bank: card.bank,
     limit_amount: card.limit,
     due_day: card.dueDay,
     closing_day: card.closingDay,
     interest_rate_month: card.interestRateMonth,
-  };
+  });
 }
 
 export function mapInvoice(row: any): Invoice {
@@ -126,15 +130,15 @@ export function mapInvoice(row: any): Invoice {
 }
 
 export function invoiceToRow(invoice: Omit<Invoice, "id"> | Partial<Invoice>) {
-  return {
+  return withoutUndefined({
     card_id: invoice.cardId,
     competence: invoice.competence,
     due_date: invoice.dueDate,
-    closing_date: invoice.closingDate ?? null,
+    closing_date: "closingDate" in invoice ? invoice.closingDate ?? null : undefined,
     total_amount: invoice.totalAmount,
     paid_amount: invoice.paidAmount,
     status: invoice.status,
-  };
+  });
 }
 
 export function mapInstallment(row: any): Installment {
@@ -142,6 +146,11 @@ export function mapInstallment(row: any): Installment {
     id: row.id,
     transactionId: row.transaction_id ?? undefined,
     cardId: row.card_id ?? undefined,
+    description: row.description ?? undefined,
+    category: row.category ?? undefined,
+    purchaseDate: row.purchase_date ?? undefined,
+    totalAmount: row.total_amount !== undefined && row.total_amount !== null ? Number(row.total_amount) : undefined,
+    downPayment: row.down_payment !== undefined && row.down_payment !== null ? Number(row.down_payment) : undefined,
     competence: row.competence,
     installmentNumber: Number(row.installment_number ?? 1),
     totalInstallments: Number(row.total_installments ?? 1),
@@ -151,15 +160,20 @@ export function mapInstallment(row: any): Installment {
 }
 
 export function installmentToRow(installment: Omit<Installment, "id"> | Partial<Installment>) {
-  return {
-    transaction_id: installment.transactionId ?? null,
-    card_id: installment.cardId ?? null,
+  return withoutUndefined({
+    transaction_id: "transactionId" in installment ? installment.transactionId ?? null : undefined,
+    card_id: "cardId" in installment ? installment.cardId ?? null : undefined,
+    description: installment.description,
+    category: installment.category,
+    purchase_date: installment.purchaseDate,
+    total_amount: installment.totalAmount,
+    down_payment: installment.downPayment,
     competence: installment.competence,
     installment_number: installment.installmentNumber,
     total_installments: installment.totalInstallments,
     amount: installment.amount,
     status: installment.status,
-  };
+  });
 }
 
 export function mapDebt(row: any): Debt {
@@ -210,7 +224,7 @@ export function mapAction(row: any): ActionItem {
 }
 
 export function actionToRow(action: Omit<ActionItem, "id"> | Partial<ActionItem>) {
-  return {
+  return withoutUndefined({
     title: action.title,
     reason: action.reason,
     priority: action.priority,
@@ -218,5 +232,5 @@ export function actionToRow(action: Omit<ActionItem, "id"> | Partial<ActionItem>
     expected_savings: action.expectedSavings,
     difficulty: action.difficulty,
     status: action.status,
-  };
+  });
 }

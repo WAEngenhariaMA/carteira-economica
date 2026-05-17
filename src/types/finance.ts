@@ -83,11 +83,27 @@ export interface Installment {
   id: string;
   transactionId?: string;
   cardId?: string;
+  description?: string;
+  category?: string;
+  purchaseDate?: string;
+  totalAmount?: number;
+  downPayment?: number;
   competence: string;
   installmentNumber: number;
   totalInstallments: number;
   amount: number;
   status: "scheduled" | "open" | "paid";
+}
+
+export interface InstallmentPurchaseInput {
+  cardId: string;
+  description: string;
+  category: string;
+  purchaseDate: string;
+  firstCompetence: string;
+  totalAmount: number;
+  downPayment: number;
+  totalInstallments: number;
 }
 
 export interface Debt {

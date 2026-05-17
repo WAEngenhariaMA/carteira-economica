@@ -1,37 +1,47 @@
-import { useState } from "react";
-import type { PaymentRail, Transaction } from "../../types/finance";
+import { useEffect, useState } from "react";
+import type { Essentiality, PaymentRail, Transaction } from "../../types/finance";
 
 interface TransactionFormProps {
   competence: string;
   type: "income" | "expense";
   onSubmit: (transaction: Omit<Transaction, "id">) => Promise<void>;
+  initialValue?: Transaction | null;
+  onCancel?: () => void;
 }
 
-export function TransactionForm({ competence, type, onSubmit }: TransactionFormProps) {
+function blankForm(competence: string, type: "income" | "expense", initialValue?: Transaction | null): {
+  date: string;
+  description: string;
+  amount: string;
+  category: string;
+  subcategory: string;
+  bank: string;
+  paymentRail: PaymentRail;
+  essentiality: Essentiality;
+  fixed: boolean;
+  recurring: boolean;
+} {
+  return {
+    date: initialValue?.date ?? `${competence}-01`,
+    description: initialValue?.description ?? "",
+    amount: initialValue ? String(initialValue.amount) : "",
+    category: initialValue?.category ?? (type === "income" ? "Renda" : "Sem categoria"),
+    subcategory: initialValue?.subcategory ?? "",
+    bank: initialValue?.bank ?? "",
+    paymentRail: initialValue?.paymentRail ?? ("bank" as const),
+    essentiality: initialValue?.essentiality ?? (type === "income" ? "important" : "essential"),
+    fixed: initialValue?.fixed ?? false,
+    recurring: initialValue?.recurring ?? false,
+  };
+}
+
+export function TransactionForm({ competence, type, onSubmit, initialValue, onCancel }: TransactionFormProps) {
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState<{
-    date: string;
-    description: string;
-    amount: string;
-    category: string;
-    subcategory: string;
-    bank: string;
-    paymentRail: PaymentRail;
-    essentiality: string;
-    fixed: boolean;
-    recurring: boolean;
-  }>({
-    date: `${competence}-01`,
-    description: "",
-    amount: "",
-    category: type === "income" ? "Renda" : "Sem categoria",
-    subcategory: "",
-    bank: "",
-    paymentRail: "bank" as const,
-    essentiality: type === "income" ? "important" : "essential",
-    fixed: false,
-    recurring: false,
-  });
+  const [form, setForm] = useState(blankForm(competence, type, initialValue));
+
+  useEffect(() => {
+    setForm(blankForm(competence, type, initialValue));
+  }, [competence, initialValue, type]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -50,11 +60,17 @@ export function TransactionForm({ competence, type, onSubmit }: TransactionFormP
         fixed: form.fixed,
         paymentRail: form.paymentRail,
         bank: form.bank,
-        status: type === "income" ? "paid" : "open",
-        priority: type === "income" ? "adjustable" : "mandatory",
-        impact: Number(form.amount) > 1000 ? "high" : "medium",
+        status: initialValue?.status ?? (type === "income" ? "paid" : "open"),
+        priority: initialValue?.priority ?? (type === "income" ? "adjustable" : "mandatory"),
+        impact: initialValue?.impact ?? (Number(form.amount) > 1000 ? "high" : "medium"),
+        cardId: initialValue?.cardId,
+        installment: initialValue?.installment,
+        totalInstallments: initialValue?.totalInstallments,
+        notes: initialValue?.notes,
       });
-      setForm((current) => ({ ...current, description: "", amount: "", subcategory: "" }));
+      if (!initialValue) {
+        setForm((current) => ({ ...current, description: "", amount: "", subcategory: "" }));
+      }
     } finally {
       setSaving(false);
     }
@@ -97,7 +113,7 @@ export function TransactionForm({ competence, type, onSubmit }: TransactionFormP
       </label>
       <label>
         Essencialidade
-        <select value={form.essentiality} onChange={(event) => setForm({ ...form, essentiality: event.target.value })}>
+        <select value={form.essentiality} onChange={(event) => setForm({ ...form, essentiality: event.target.value as Essentiality })}>
           <option value="essential">Essencial</option>
           <option value="important">Importante</option>
           <option value="superfluous">Superfluo</option>
@@ -112,9 +128,16 @@ export function TransactionForm({ competence, type, onSubmit }: TransactionFormP
         <input checked={form.recurring} type="checkbox" onChange={(event) => setForm({ ...form, recurring: event.target.checked })} />
         Recorrente
       </label>
-      <button className="primary-button" type="submit" disabled={saving}>
-        {saving ? "Salvando..." : "Salvar"}
-      </button>
+      <div className="form-actions">
+        <button className="primary-button" type="submit" disabled={saving}>
+          {saving ? "Salvando..." : initialValue ? "Atualizar" : "Salvar"}
+        </button>
+        {initialValue && onCancel && (
+          <button className="ghost-button" type="button" onClick={onCancel}>
+            Cancelar edicao
+          </button>
+        )}
+      </div>
     </form>
   );
 }

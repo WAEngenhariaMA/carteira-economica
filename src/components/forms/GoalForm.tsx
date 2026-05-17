@@ -1,9 +1,33 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Goal } from "../../types/finance";
 
-export function GoalForm({ onSubmit }: { onSubmit: (goal: Omit<Goal, "id">) => Promise<void> }) {
-  const [form, setForm] = useState({ name: "", target: "", current: "0", deadline: "", priority: "medium" });
+export function GoalForm({
+  onSubmit,
+  initialValue,
+  onCancel,
+}: {
+  onSubmit: (goal: Omit<Goal, "id">) => Promise<void>;
+  initialValue?: Goal | null;
+  onCancel?: () => void;
+}) {
+  const [form, setForm] = useState({
+    name: initialValue?.name ?? "",
+    target: initialValue ? String(initialValue.target) : "",
+    current: initialValue ? String(initialValue.current) : "0",
+    deadline: initialValue?.deadline ?? "",
+    priority: initialValue?.priority ?? "medium",
+  });
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setForm({
+      name: initialValue?.name ?? "",
+      target: initialValue ? String(initialValue.target) : "",
+      current: initialValue ? String(initialValue.current) : "0",
+      deadline: initialValue?.deadline ?? "",
+      priority: initialValue?.priority ?? "medium",
+    });
+  }, [initialValue]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -16,7 +40,9 @@ export function GoalForm({ onSubmit }: { onSubmit: (goal: Omit<Goal, "id">) => P
         deadline: form.deadline,
         priority: form.priority as Goal["priority"],
       });
-      setForm({ name: "", target: "", current: "0", deadline: "", priority: "medium" });
+      if (!initialValue) {
+        setForm({ name: "", target: "", current: "0", deadline: "", priority: "medium" });
+      }
     } finally {
       setSaving(false);
     }
@@ -42,16 +68,23 @@ export function GoalForm({ onSubmit }: { onSubmit: (goal: Omit<Goal, "id">) => P
       </label>
       <label>
         Prioridade
-        <select value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value })}>
+        <select value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value as Goal["priority"] })}>
           <option value="urgent">Urgente</option>
           <option value="high">Alta</option>
           <option value="medium">Media</option>
           <option value="low">Baixa</option>
         </select>
       </label>
-      <button className="primary-button" type="submit" disabled={saving}>
-        {saving ? "Salvando..." : "Salvar meta"}
-      </button>
+      <div className="form-actions">
+        <button className="primary-button" type="submit" disabled={saving}>
+          {saving ? "Salvando..." : initialValue ? "Atualizar meta" : "Salvar meta"}
+        </button>
+        {initialValue && onCancel && (
+          <button className="ghost-button" type="button" onClick={onCancel}>
+            Cancelar edicao
+          </button>
+        )}
+      </div>
     </form>
   );
 }

@@ -1,16 +1,28 @@
+import { useState } from "react";
+import { Pencil, Trash2 } from "lucide-react";
 import { ActionForm } from "../components/forms/ActionForm";
-import { Panel, RiskPill } from "../components/ui/FinanceUI";
+import { Panel, RiskPill, StatusPill } from "../components/ui/FinanceUI";
 import { formatMoney } from "../lib/formatters";
 import { actionPlanService } from "../services/actionPlanService";
 import type { WorkspacePageProps } from "../app/routes";
+import type { ActionItem } from "../types/finance";
 
 export function PlanoAcaoPage({ userId, workspace, refresh }: WorkspacePageProps) {
+  const [editing, setEditing] = useState<ActionItem | null>(null);
+
   return (
     <div className="screen-stack">
-      <Panel title="Cadastrar Acao Operacional">
+      <Panel title={editing ? "Editar Acao Operacional" : "Cadastrar Acao Operacional"}>
         <ActionForm
+          initialValue={editing}
+          onCancel={() => setEditing(null)}
           onSubmit={async (action) => {
-            await actionPlanService.create(userId, action);
+            if (editing) {
+              await actionPlanService.update(userId, editing.id, action);
+              setEditing(null);
+            } else {
+              await actionPlanService.create(userId, action);
+            }
             refresh();
           }}
         />
@@ -26,6 +38,7 @@ export function PlanoAcaoPage({ userId, workspace, refresh }: WorkspacePageProps
                 <th>Dificuldade</th>
                 <th>Status</th>
                 <th className="num">Impacto</th>
+                <th>Acoes</th>
               </tr>
             </thead>
             <tbody>
@@ -38,8 +51,25 @@ export function PlanoAcaoPage({ userId, workspace, refresh }: WorkspacePageProps
                   <td>{action.horizon}</td>
                   <td><RiskPill level={action.priority} /></td>
                   <td>{action.difficulty}</td>
-                  <td>{action.status}</td>
+                  <td><StatusPill status={action.status} /></td>
                   <td className="num">{formatMoney(action.expectedSavings)}</td>
+                  <td className="table-actions">
+                    <button className="ghost-button icon-only" type="button" aria-label="Editar acao" onClick={() => setEditing(action)}>
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      className="ghost-button icon-only"
+                      type="button"
+                      aria-label="Excluir acao"
+                      onClick={async () => {
+                        await actionPlanService.remove(userId, action.id);
+                        if (editing?.id === action.id) setEditing(null);
+                        refresh();
+                      }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

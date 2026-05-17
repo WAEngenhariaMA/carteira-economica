@@ -28,7 +28,7 @@ export const profileService = {
   async update(userId: string, id: string, profile: Partial<FinancialProfile>) {
     const { data, error } = await getSupabase()
       .from("financial_profiles")
-      .update(profileToRow(profile as Omit<FinancialProfile, "id">))
+      .update(profileToRow(profile))
       .eq("user_id", userId)
       .eq("id", id)
       .select("*")

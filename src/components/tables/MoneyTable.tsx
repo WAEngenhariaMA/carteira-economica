@@ -1,15 +1,17 @@
 import clsx from "clsx";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { formatMoney } from "../../lib/formatters";
 import type { Transaction } from "../../types/finance";
 
 export function MoneyTable({
   title,
   rows,
+  onEdit,
   onDelete,
 }: {
   title: string;
   rows: Transaction[];
+  onEdit?: (row: Transaction) => void;
   onDelete?: (id: string) => void;
 }) {
   return (
@@ -25,7 +27,7 @@ export function MoneyTable({
             <th>Essencialidade</th>
             <th>Status</th>
             <th className="num">Valor</th>
-            {onDelete && <th />}
+            {(onEdit || onDelete) && <th>Acoes</th>}
           </tr>
         </thead>
         <tbody>
@@ -43,11 +45,18 @@ export function MoneyTable({
               </td>
               <td>{row.status}</td>
               <td className="num">{formatMoney(row.amount)}</td>
-              {onDelete && (
-                <td className="row-actions">
-                  <button className="ghost-button icon-only" type="button" onClick={() => onDelete(row.id)}>
+              {(onEdit || onDelete) && (
+                <td className="table-actions">
+                  {onEdit && (
+                    <button className="ghost-button icon-only" type="button" aria-label="Editar lancamento" onClick={() => onEdit(row)}>
+                      <Pencil size={15} />
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button className="ghost-button icon-only" type="button" aria-label="Excluir lancamento" onClick={() => onDelete(row.id)}>
                     <Trash2 size={15} />
-                  </button>
+                    </button>
+                  )}
                 </td>
               )}
             </tr>

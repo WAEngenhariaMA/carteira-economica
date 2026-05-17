@@ -1,20 +1,35 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Card } from "../../types/finance";
 
 export function CardForm({
   onSubmit,
+  initialValue,
+  onCancel,
 }: {
   onSubmit: (card: Omit<Card, "id" | "currentInvoice" | "previousInvoice" | "futureInstallments">) => Promise<void>;
+  initialValue?: Card | null;
+  onCancel?: () => void;
 }) {
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    bank: "",
-    name: "",
-    limit: "",
-    dueDay: "10",
-    closingDay: "3",
-    interestRateMonth: "12.5",
-  });
+  const [form, setForm] = useState(() => ({
+    bank: initialValue?.bank ?? "",
+    name: initialValue?.name ?? "",
+    limit: initialValue ? String(initialValue.limit) : "",
+    dueDay: initialValue ? String(initialValue.dueDay) : "10",
+    closingDay: initialValue ? String(initialValue.closingDay) : "3",
+    interestRateMonth: initialValue ? String(initialValue.interestRateMonth) : "12.5",
+  }));
+
+  useEffect(() => {
+    setForm({
+      bank: initialValue?.bank ?? "",
+      name: initialValue?.name ?? "",
+      limit: initialValue ? String(initialValue.limit) : "",
+      dueDay: initialValue ? String(initialValue.dueDay) : "10",
+      closingDay: initialValue ? String(initialValue.closingDay) : "3",
+      interestRateMonth: initialValue ? String(initialValue.interestRateMonth) : "12.5",
+    });
+  }, [initialValue]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,7 +43,9 @@ export function CardForm({
         closingDay: Number(form.closingDay),
         interestRateMonth: Number(form.interestRateMonth),
       });
-      setForm({ bank: "", name: "", limit: "", dueDay: "10", closingDay: "3", interestRateMonth: "12.5" });
+      if (!initialValue) {
+        setForm({ bank: "", name: "", limit: "", dueDay: "10", closingDay: "3", interestRateMonth: "12.5" });
+      }
     } finally {
       setSaving(false);
     }
@@ -60,9 +77,16 @@ export function CardForm({
         Juros a.m. %
         <input value={form.interestRateMonth} type="number" min="0" step="0.1" onChange={(event) => setForm({ ...form, interestRateMonth: event.target.value })} />
       </label>
-      <button className="primary-button" type="submit" disabled={saving}>
-        {saving ? "Salvando..." : "Cadastrar cartao"}
-      </button>
+      <div className="form-actions">
+        <button className="primary-button" type="submit" disabled={saving}>
+          {saving ? "Salvando..." : initialValue ? "Atualizar cartao" : "Cadastrar cartao"}
+        </button>
+        {initialValue && onCancel && (
+          <button className="ghost-button" type="button" onClick={onCancel}>
+            Cancelar edicao
+          </button>
+        )}
+      </div>
     </form>
   );
 }
