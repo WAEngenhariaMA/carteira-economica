@@ -1292,6 +1292,12 @@ button {
   color: var(--muted);
 }
 
+.auth-logout-button {
+  margin-left: auto;
+  min-height: 36px;
+  padding-inline: 12px;
+}
+
 .auth-copy {
   display: grid;
   gap: 10px;

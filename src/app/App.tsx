@@ -73,7 +73,7 @@ function ProtectedApp() {
   if (workspaceState.loading) return <LoadingState />;
   if (workspaceState.error) return <ErrorState message={workspaceState.error} onRetry={workspaceState.refresh} />;
   if (!workspaceState.data || !workspaceState.summary || !pageProps) {
-    return <ProfileSetupPage onSubmit={workspaceState.createProfile} />;
+    return <ProfileSetupPage onSubmit={workspaceState.createProfile} onLogout={auth.signOut} />;
   }
 
   const handleReport = async () => {
