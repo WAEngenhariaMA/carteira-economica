@@ -53,6 +53,9 @@ export interface Transaction {
   priority: "mandatory" | "adjustable" | "cuttable" | "renegotiable";
   impact: "low" | "medium" | "high" | "severe";
   notes?: string;
+  sourceDate?: string;
+  sourceCompetence?: string;
+  projectedFromRecurring?: boolean;
 }
 
 export interface Card {

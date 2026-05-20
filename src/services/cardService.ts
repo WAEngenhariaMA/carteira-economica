@@ -6,6 +6,7 @@ import { nextCompetences, previousCompetence } from "./dateService";
 export const cardService = {
   async listWithMetrics(userId: string, competence: string) {
     const futureMonths = nextCompetences(competence, 6);
+    const metricMonths = [previousCompetence(competence), ...futureMonths];
     const { data: cardRows, error: cardError } = await getSupabase()
       .from("cards")
       .select("*")
@@ -31,7 +32,7 @@ export const cardService = {
           .select("*")
           .eq("user_id", userId)
           .in("card_id", cardIds)
-          .in("competence", futureMonths),
+          .in("competence", metricMonths),
       ]);
 
     if (invoiceError) throw invoiceError;
@@ -44,16 +45,22 @@ export const cardService = {
       const previousInvoice = (invoices ?? []).find(
         (invoice) => invoice.card_id === cardRow.id && invoice.competence === previousCompetence(competence),
       );
+      const previousInstallments = (installments ?? [])
+        .filter((installment) => installment.card_id === cardRow.id && installment.competence === previousCompetence(competence))
+        .reduce((total, installment) => total + Number(installment.amount ?? 0), 0);
       const futureInstallments = futureMonths.map((month) =>
         (installments ?? [])
           .filter((installment) => installment.card_id === cardRow.id && installment.competence === month)
           .reduce((total, installment) => total + Number(installment.amount ?? 0), 0),
       );
+      const currentInstallments = futureInstallments[0] ?? 0;
+      const currentInvoiceAmount = Number(currentInvoice?.total_amount ?? 0);
+      const previousInvoiceAmount = Number(previousInvoice?.total_amount ?? 0);
 
       return mapCard(
         cardRow,
-        Number(currentInvoice?.total_amount ?? 0),
-        Number(previousInvoice?.total_amount ?? 0),
+        currentInvoiceAmount > 0 ? currentInvoiceAmount : currentInstallments,
+        previousInvoiceAmount > 0 ? previousInvoiceAmount : previousInstallments,
         futureInstallments,
       );
     });

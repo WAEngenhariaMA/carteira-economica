@@ -36,7 +36,7 @@ export function MoneyTable({
               <td>{row.date?.slice(5).replace("-", "/")}</td>
               <td>
                 <strong>{row.description}</strong>
-                <span>{row.subcategory || "Sem subcategoria"}</span>
+                <span>{row.projectedFromRecurring ? "Recorrente nesta competência" : row.subcategory || "Sem subcategoria"}</span>
               </td>
               <td>{row.category}</td>
               <td>{paymentRailLabel(row.paymentRail)}</td>

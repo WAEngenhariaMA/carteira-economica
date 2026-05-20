@@ -38,6 +38,7 @@ function blankForm(competence: string, type: "income" | "expense", initialValue?
 export function TransactionForm({ competence, type, onSubmit, initialValue, onCancel }: TransactionFormProps) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(blankForm(competence, type, initialValue));
+  const editingProjectedRecurring = Boolean(initialValue?.projectedFromRecurring);
 
   useEffect(() => {
     setForm(blankForm(competence, type, initialValue));
@@ -48,8 +49,8 @@ export function TransactionForm({ competence, type, onSubmit, initialValue, onCa
     setSaving(true);
     try {
       await onSubmit({
-        date: form.date,
-        competence,
+        date: editingProjectedRecurring ? initialValue?.sourceDate ?? form.date : form.date,
+        competence: editingProjectedRecurring ? initialValue?.sourceCompetence ?? competence : competence,
         description: form.description,
         amount: Number(form.amount),
         type,
@@ -80,8 +81,19 @@ export function TransactionForm({ competence, type, onSubmit, initialValue, onCa
     <form className="entry-form" onSubmit={handleSubmit}>
       <label>
         Data
-        <input value={form.date} type="date" onChange={(event) => setForm({ ...form, date: event.target.value })} required />
+        <input
+          value={form.date}
+          type="date"
+          disabled={editingProjectedRecurring}
+          onChange={(event) => setForm({ ...form, date: event.target.value })}
+          required
+        />
       </label>
+      {editingProjectedRecurring && (
+        <p className="form-success inline-message">
+          Item recorrente herdado de outra competência. A edição atualiza o cadastro original e mantém a recorrência nos próximos meses.
+        </p>
+      )}
       <label>
         Descrição
         <input value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} required />
