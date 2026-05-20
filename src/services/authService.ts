@@ -1,6 +1,10 @@
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { getSupabase } from "../lib/supabase";
 
+function authRedirectUrl() {
+  return new URL(import.meta.env.BASE_URL, window.location.origin).href;
+}
+
 export const authService = {
   getSession() {
     return getSupabase().auth.getSession();
@@ -20,14 +24,14 @@ export const authService = {
       password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: authRedirectUrl(),
       },
     });
   },
 
   resetPassword(email: string) {
     return getSupabase().auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin,
+      redirectTo: authRedirectUrl(),
     });
   },
 
