@@ -47,11 +47,11 @@ export function validateImportPreview(
     const competence = readCell(row, mapping.competence) || date.slice(0, 7);
     const issues: DataQualityIssue[] = [];
 
-    if (!date) issues.push({ rowIndex: index + 1, field: "date", message: "Data invalida ou ausente", severity: "error" });
-    if (!description) issues.push({ rowIndex: index + 1, field: "description", message: "Descricao ausente", severity: "error" });
-    if (amount === 0) issues.push({ rowIndex: index + 1, field: "amount", message: "Valor zerado ou invalido", severity: "error" });
+    if (!date) issues.push({ rowIndex: index + 1, field: "date", message: "Data inválida ou ausente", severity: "error" });
+    if (!description) issues.push({ rowIndex: index + 1, field: "description", message: "Descrição ausente", severity: "error" });
+    if (amount === 0) issues.push({ rowIndex: index + 1, field: "amount", message: "Valor zerado ou inválido", severity: "error" });
     if (category === "Sem categoria") {
-      issues.push({ rowIndex: index + 1, field: "category", message: "Categoria nao informada", severity: "warning" });
+      issues.push({ rowIndex: index + 1, field: "category", message: "Categoria não informada", severity: "warning" });
     }
 
     const transaction: Omit<Transaction, "id"> = {

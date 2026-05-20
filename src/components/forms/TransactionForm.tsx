@@ -83,7 +83,7 @@ export function TransactionForm({ competence, type, onSubmit, initialValue, onCa
         <input value={form.date} type="date" onChange={(event) => setForm({ ...form, date: event.target.value })} required />
       </label>
       <label>
-        Descricao
+        Descrição
         <input value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} required />
       </label>
       <label>
@@ -106,9 +106,9 @@ export function TransactionForm({ competence, type, onSubmit, initialValue, onCa
         Origem
         <select value={form.paymentRail} onChange={(event) => setForm({ ...form, paymentRail: event.target.value as "bank" | "card" | "cash" | "loan" })}>
           <option value="bank">Banco</option>
-          <option value="card">Cartao</option>
+          <option value="card">Cartão</option>
           <option value="cash">Dinheiro</option>
-          <option value="loan">Divida</option>
+          <option value="loan">Dívida</option>
         </select>
       </label>
       <label>
@@ -116,7 +116,7 @@ export function TransactionForm({ competence, type, onSubmit, initialValue, onCa
         <select value={form.essentiality} onChange={(event) => setForm({ ...form, essentiality: event.target.value as Essentiality })}>
           <option value="essential">Essencial</option>
           <option value="important">Importante</option>
-          <option value="superfluous">Superfluo</option>
+          <option value="superfluous">Supérfluo</option>
           <option value="impulsive">Impulsivo</option>
         </select>
       </label>
@@ -134,7 +134,7 @@ export function TransactionForm({ competence, type, onSubmit, initialValue, onCa
         </button>
         {initialValue && onCancel && (
           <button className="ghost-button" type="button" onClick={onCancel}>
-            Cancelar edicao
+            Cancelar edição
           </button>
         )}
       </div>

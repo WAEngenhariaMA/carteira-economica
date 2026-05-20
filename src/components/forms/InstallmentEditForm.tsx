@@ -63,13 +63,13 @@ export function InstallmentEditForm({
   return (
     <form className="entry-form" onSubmit={handleSubmit}>
       <label>
-        Cartao
+        Cartão
         <select value={form.cardId} onChange={(event) => setForm({ ...form, cardId: event.target.value })} required>
           {cards.map((card) => <option key={card.id} value={card.id}>{card.bank} - {card.name}</option>)}
         </select>
       </label>
       <label>
-        Descricao
+        Descrição
         <input value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} required />
       </label>
       <label>
@@ -81,7 +81,7 @@ export function InstallmentEditForm({
         <input value={form.purchaseDate} type="date" onChange={(event) => setForm({ ...form, purchaseDate: event.target.value })} />
       </label>
       <label>
-        Competencia
+        Competência
         <input value={form.competence} type="month" onChange={(event) => setForm({ ...form, competence: event.target.value })} required />
       </label>
       <label>
@@ -109,7 +109,7 @@ export function InstallmentEditForm({
           {saving ? "Salvando..." : "Atualizar parcela"}
         </button>
         <button className="ghost-button" type="button" onClick={onCancel}>
-          Cancelar edicao
+          Cancelar edição
         </button>
       </div>
     </form>

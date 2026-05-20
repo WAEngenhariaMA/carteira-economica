@@ -29,18 +29,18 @@ export function DiagnosticoPage({ workspace, summary }: WorkspacePageProps) {
           <div className="budget-bars">
             <BudgetBar label="Necessidades" ratio={summary.adaptiveBudget.needs} amount={summary.income * summary.adaptiveBudget.needs} />
             <BudgetBar label="Desejos" ratio={summary.adaptiveBudget.wants} amount={summary.income * summary.adaptiveBudget.wants} />
-            <BudgetBar label="Reserva ou divida" ratio={summary.adaptiveBudget.reserveOrDebt} amount={summary.income * summary.adaptiveBudget.reserveOrDebt} />
+            <BudgetBar label="Reserva ou dívida" ratio={summary.adaptiveBudget.reserveOrDebt} amount={summary.income * summary.adaptiveBudget.reserveOrDebt} />
           </div>
         </Panel>
         <Panel title="Leitura Executiva">
           <div className="score-copy">
             <RiskPill level={summary.riskLevel} />
             <h3>{summary.financialStatus}</h3>
-            <p>Diagnostico calculado por regras objetivas. A proxima etapa profissional e persistir esses achados e enviar para uma Edge Function de IA.</p>
+            <p>Diagnóstico calculado por regras objetivas. A próxima etapa profissional é persistir esses achados e enviar para uma função de borda de IA.</p>
           </div>
         </Panel>
       </div>
-      <Panel title="Achados Tecnicos">
+      <Panel title="Achados Técnicos">
         <div className="diagnostic-grid">
           {diagnostics.map((item) => (
             <article className="diagnostic-card" key={item.id}>

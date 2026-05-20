@@ -7,14 +7,14 @@ export function SupabaseSetupPage() {
         <div className="brand auth-brand">
           <div className="brand-mark">CE</div>
           <div>
-            <strong>Carteira Economica IA</strong>
-            <span>Configuracao obrigatoria de produto</span>
+            <strong>Carteira Econômica IA</strong>
+            <span>Configuração obrigatória de produto</span>
           </div>
         </div>
         <div className="auth-copy">
           <Database size={36} />
-          <h1>Supabase nao configurado</h1>
-          <p>Para operar como sistema profissional, configure as variaveis de ambiente e execute o schema SQL.</p>
+          <h1>Supabase não configurado</h1>
+          <p>Para operar como sistema profissional, configure as variáveis de ambiente e execute o schema SQL.</p>
         </div>
         <div className="setup-steps">
           <code>VITE_SUPABASE_URL=https://seu-projeto.supabase.co</code>

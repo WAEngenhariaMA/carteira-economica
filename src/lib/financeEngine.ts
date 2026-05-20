@@ -34,11 +34,11 @@ function riskFromScore(score: number): RiskLevel {
 function statusFromRisk(level: RiskLevel) {
   const status: Record<RiskLevel, string> = {
     excellent: "Excelente",
-    healthy: "Saudavel",
-    attention: "Atencao operacional",
+    healthy: "Saudável",
+    attention: "Atenção operacional",
     risk: "Risco de aperto",
-    critical: "Critico",
-    emergency: "Emergencia financeira",
+    critical: "Crítico",
+    emergency: "Emergência financeira",
   };
 
   return status[level];
@@ -46,7 +46,7 @@ function statusFromRisk(level: RiskLevel) {
 
 function adaptiveBudgetFor(score: number): BudgetRule {
   if (score >= 70) {
-    return { needs: 0.5, wants: 0.3, reserveOrDebt: 0.2, label: "50/30/20 saudavel" };
+    return { needs: 0.5, wants: 0.3, reserveOrDebt: 0.2, label: "50/30/20 saudável" };
   }
 
   if (score >= 50) {
@@ -57,7 +57,7 @@ function adaptiveBudgetFor(score: number): BudgetRule {
     return { needs: 0.7, wants: 0.1, reserveOrDebt: 0.2, label: "70/10/20 endividado" };
   }
 
-  return { needs: 0.8, wants: 0.05, reserveOrDebt: 0.15, label: "80/5/15 emergencia" };
+  return { needs: 0.8, wants: 0.05, reserveOrDebt: 0.15, label: "80/5/15 emergência" };
 }
 
 function buildFutureCommitments(
@@ -152,7 +152,7 @@ export function buildDiagnostics(summary: FinancialSummary, cards: Card[], debts
       id: "diag-income",
       title: "Renda comprometida acima do limite seguro",
       description:
-        "O fluxo mensal esta operando em zona de pressao. A prioridade e reduzir faturas e bloquear novas parcelas antes de buscar investimentos.",
+        "O fluxo mensal está operando em zona de pressão. A prioridade é reduzir faturas e bloquear novas parcelas antes de buscar investimentos.",
       severity: summary.committedIncomeRatio > 0.9 ? "critical" : "risk",
       metric: "Comprometimento",
     });
@@ -161,11 +161,11 @@ export function buildDiagnostics(summary: FinancialSummary, cards: Card[], debts
   if (summary.cardIncomeRatio > 0.3) {
     findings.push({
       id: "diag-card",
-      title: "Cartoes pesando mais que 30% da renda",
+      title: "Cartões pesando mais que 30% da renda",
       description:
-        "As faturas ja consomem uma parcela relevante do caixa. O cartao mais sensivel deve receber teto semanal e revisao de compras recorrentes.",
+        "As faturas já consomem uma parcela relevante do caixa. O cartão mais sensível deve receber teto semanal e revisão de compras recorrentes.",
       severity: summary.cardIncomeRatio > 0.55 ? "critical" : "risk",
-      metric: "Cartoes",
+      metric: "Cartões",
     });
   }
 
@@ -174,7 +174,7 @@ export function buildDiagnostics(summary: FinancialSummary, cards: Card[], debts
       id: "diag-balance",
       title: "Saldo mensal projetado negativo",
       description:
-        "Mesmo sem novos gastos, o mes tende a fechar no vermelho. A decisao correta e atacar vazamentos de caixa em ate 7 dias.",
+        "Mesmo sem novos gastos, o mês tende a fechar no vermelho. A decisão correta é atacar vazamentos de caixa em até 7 dias.",
       severity: "critical",
       metric: "Fluxo",
     });
@@ -184,10 +184,10 @@ export function buildDiagnostics(summary: FinancialSummary, cards: Card[], debts
   if (highestInterestDebt) {
     findings.push({
       id: "diag-debt",
-      title: "Divida de juros alto exige ataque prioritario",
-      description: `${highestInterestDebt.creditor} tem custo mensal superior ao aceitavel. Renegociar ou quitar reduz o risco de bola de neve.`,
+      title: "Dívida de juros alto exige ataque prioritário",
+      description: `${highestInterestDebt.creditor} tem custo mensal superior ao aceitável. Renegociar ou quitar reduz o risco de bola de neve.`,
       severity: "risk",
-      metric: "Dividas",
+      metric: "Dívidas",
     });
   }
 
@@ -199,7 +199,7 @@ export function buildDiagnostics(summary: FinancialSummary, cards: Card[], debts
       id: "diag-card-limit",
       title: `${riskiestCard.bank} concentra risco de fatura`,
       description:
-        "A combinacao de fatura alta, limite usado e parcelas futuras aumenta o risco de atraso nos proximos vencimentos.",
+        "A combinação de fatura alta, limite usado e parcelas futuras aumenta o risco de atraso nos próximos vencimentos.",
       severity: "attention",
       metric: "Fatura",
     });
@@ -215,7 +215,7 @@ export function buildAlerts(summary: FinancialSummary, cards: Card[]): AlertItem
     alerts.push({
       id: "alert-cash",
       title: "Saldo livre insuficiente",
-      message: "O valor livre ate o fim do mes esta negativo apos reservas operacionais.",
+      message: "O valor livre até o fim do mês está negativo após reservas operacionais.",
       level: "critical",
       source: "cashflow",
     });
@@ -226,7 +226,7 @@ export function buildAlerts(summary: FinancialSummary, cards: Card[]): AlertItem
     if (invoiceRatio > 0.35) {
       alerts.push({
         id: `alert-${card.id}`,
-        title: `Fatura ${card.bank} em zona de atencao`,
+        title: `Fatura ${card.bank} em zona de atenção`,
         message: `Uso atual de ${Math.round(invoiceRatio * 100)}% do limite com vencimento no dia ${card.dueDay}.`,
         level: invoiceRatio > 0.5 ? "risk" : "attention",
         source: "card",
@@ -237,8 +237,8 @@ export function buildAlerts(summary: FinancialSummary, cards: Card[]): AlertItem
   if (summary.futureCommitments.slice(0, 3).some((month) => month.total / summary.income > 0.45)) {
     alerts.push({
       id: "alert-installments",
-      title: "Proximos 3 meses ja estao comprometidos",
-      message: "Parcelas futuras mantem pressao mesmo com congelamento imediato de novas compras.",
+      title: "Próximos 3 meses já estão comprometidos",
+      message: "Parcelas futuras mantêm pressão mesmo com congelamento imediato de novas compras.",
       level: "risk",
       source: "installments",
     });
@@ -271,7 +271,7 @@ export function buildRuleBasedActions(summary: FinancialSummary): ActionItem[] {
     actions.push({
       id: "rule-card-freeze",
       title: "Congelar novas compras parceladas",
-      reason: "Cartoes acima de 30% da renda elevam o risco de atraso e rolagem.",
+      reason: "Cartões acima de 30% da renda elevam o risco de atraso e rolagem.",
       priority: "urgent",
       horizon: "7 dias",
       expectedSavings: Math.round(summary.cardInvoices * 0.18),
@@ -283,8 +283,8 @@ export function buildRuleBasedActions(summary: FinancialSummary): ActionItem[] {
   if (summary.potentialSavings > 0) {
     actions.push({
       id: "rule-cut-variable",
-      title: "Cortar gastos ajustaveis de maior recorrencia",
-      reason: "Ha economia potencial sem tocar em gastos essenciais.",
+      title: "Cortar gastos ajustáveis de maior recorrência",
+      reason: "Há economia potencial sem tocar em gastos essenciais.",
       priority: "high",
       horizon: "30 dias",
       expectedSavings: Math.round(summary.potentialSavings),
@@ -296,8 +296,8 @@ export function buildRuleBasedActions(summary: FinancialSummary): ActionItem[] {
   if (summary.projectedBalance < 0) {
     actions.push({
       id: "rule-cashflow",
-      title: "Reorganizar fluxo de caixa do mes atual",
-      reason: "Saldo projetado negativo exige acao antes dos vencimentos.",
+      title: "Reorganizar fluxo de caixa do mês atual",
+      reason: "Saldo projetado negativo exige ação antes dos vencimentos.",
       priority: "urgent",
       horizon: "7 dias",
       expectedSavings: Math.abs(Math.round(summary.projectedBalance)),
@@ -310,7 +310,7 @@ export function buildRuleBasedActions(summary: FinancialSummary): ActionItem[] {
     actions.push({
       id: "rule-reserve",
       title: "Automatizar reserva mensal",
-      reason: "Com fluxo sob controle, a proxima decisao e aumentar resiliencia.",
+      reason: "Com fluxo sob controle, a próxima decisão é aumentar resiliência.",
       priority: "medium",
       horizon: "90 dias",
       expectedSavings: Math.max(Math.round(summary.income * 0.05), 0),

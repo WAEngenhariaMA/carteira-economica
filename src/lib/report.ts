@@ -34,9 +34,9 @@ export function generateExecutivePdf({
   doc.rect(0, 0, pageWidth, 44, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(19);
-  doc.text("Carteira Economica IA", 14, 18);
+  doc.text("Carteira Econômica IA", 14, 18);
   doc.setFontSize(11);
-  doc.text("Relatorio executivo de diagnostico e planejamento financeiro pessoal", 14, 29);
+  doc.text("Relatório executivo de diagnóstico e planejamento financeiro pessoal", 14, 29);
   doc.text(`Cliente: ${profile.ownerName}`, 14, 37);
 
   doc.setTextColor(20, 31, 46);
@@ -44,7 +44,7 @@ export function generateExecutivePdf({
   doc.text("Resumo executivo", 14, 58);
   doc.setFontSize(10);
   doc.text(
-    `Status: ${riskLabel(summary.riskLevel)} | Score: ${summary.healthScore}/100 | Comprometimento: ${formatPercent(summary.committedIncomeRatio)}`,
+    `Status: ${riskLabel(summary.riskLevel)} | Pontuação: ${summary.healthScore}/100 | Comprometimento: ${formatPercent(summary.committedIncomeRatio)}`,
     14,
     67,
   );
@@ -56,12 +56,12 @@ export function generateExecutivePdf({
 
   autoTable(doc, {
     startY: 84,
-    head: [["Indicador", "Valor", "Interpretacao"]],
+    head: [["Indicador", "Valor", "Interpretação"]],
     body: [
       ["Renda mensal", formatMoney(summary.income), "Base de capacidade financeira"],
-      ["Faturas abertas", formatMoney(summary.cardInvoices), "Pressao de curto prazo"],
-      ["Dividas mensais", formatMoney(summary.debtPayments), "Obrigacao recorrente"],
-      ["Saldo previsto", formatMoney(summary.projectedBalance), "Fluxo apos compromissos"],
+      ["Faturas abertas", formatMoney(summary.cardInvoices), "Pressão de curto prazo"],
+      ["Dívidas mensais", formatMoney(summary.debtPayments), "Obrigação recorrente"],
+      ["Saldo previsto", formatMoney(summary.projectedBalance), "Fluxo após compromissos"],
       ["Regra adaptativa", summary.adaptiveBudget.label, "Modelo recomendado para o momento"],
     ],
     styles: { fontSize: 9 },
@@ -69,14 +69,14 @@ export function generateExecutivePdf({
   });
 
   autoTable(doc, {
-    head: [["Diagnostico", "Gravidade", "Leitura executiva"]],
+    head: [["Diagnóstico", "Gravidade", "Leitura executiva"]],
     body: diagnostics.map((item) => [item.title, riskLabel(item.severity), item.description]),
     styles: { fontSize: 8.5 },
     headStyles: { fillColor: [11, 23, 38] },
   });
 
   autoTable(doc, {
-    head: [["Cartao", "Fatura", "Limite", "Vencimento", "Juros a.m."]],
+    head: [["Cartão", "Fatura", "Limite", "Vencimento", "Juros a.m."]],
     body: cards.map((card) => [
       card.bank,
       formatMoney(card.currentInvoice),
@@ -89,11 +89,11 @@ export function generateExecutivePdf({
   });
 
   autoTable(doc, {
-    head: [["Plano de acao", "Prazo", "Prioridade", "Economia estimada"]],
+    head: [["Plano de ação", "Prazo", "Prioridade", "Economia estimada"]],
     body: actions.map((item) => [
       item.title,
       item.horizon,
-      item.priority.toUpperCase(),
+      riskLabel(item.priority),
       formatMoney(item.expectedSavings),
     ]),
     styles: { fontSize: 8.5 },
@@ -101,7 +101,7 @@ export function generateExecutivePdf({
   });
 
   autoTable(doc, {
-    head: [["Alertas ativos", "Nivel", "Mensagem"]],
+    head: [["Alertas ativos", "Nível", "Mensagem"]],
     body: alerts.map((alert) => [alert.title, riskLabel(alert.level), alert.message]),
     styles: { fontSize: 8.5 },
     headStyles: { fillColor: [180, 83, 9] },

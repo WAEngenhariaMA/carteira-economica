@@ -31,18 +31,18 @@ export function ConfiguracoesPage({ userId, workspace, refresh }: WorkspacePageP
       <div className="dashboard-grid">
         <Panel title="Infraestrutura">
           <div className="config-list">
-            <ConfigRow icon={Database} title="Supabase" value="Ativo com usuario autenticado e RLS" />
-            <ConfigRow icon={LockKeyhole} title="Autenticacao" value={`Perfil: ${workspace.profile.ownerName}`} />
+            <ConfigRow icon={Database} title="Supabase" value="Ativo com usuário autenticado e RLS" />
+            <ConfigRow icon={LockKeyhole} title="Autenticação" value={`Perfil: ${workspace.profile.ownerName}`} />
             <ConfigRow icon={Landmark} title="Modelo de dados" value="Schema SQL com tabelas financeiras, auditoria e qualidade" />
-            <ConfigRow icon={PieChart} title="BI financeiro" value="Motor local preparado para Edge Functions" />
+            <ConfigRow icon={PieChart} title="BI financeiro" value="Motor local preparado para funções de borda" />
           </div>
         </Panel>
-        <Panel title="Proximas Funcoes IA">
+        <Panel title="Próximas Funções de IA">
           <div className="roadmap-list">
-            <span><Brain size={16} /> classify-transaction</span>
-            <span><Brain size={16} /> generate-diagnostic</span>
-            <span><Brain size={16} /> generate-action-plan</span>
-            <span><Brain size={16} /> generate-report-text</span>
+            <span><Brain size={16} /> Classificação de lançamentos</span>
+            <span><Brain size={16} /> Diagnóstico financeiro</span>
+            <span><Brain size={16} /> Plano de ação automático</span>
+            <span><Brain size={16} /> Texto executivo do relatório</span>
           </div>
         </Panel>
       </div>

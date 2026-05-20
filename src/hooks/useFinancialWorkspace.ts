@@ -29,7 +29,7 @@ export function useFinancialWorkspace(userId: string | undefined, competence: st
 
   const createProfile = useCallback(
     async (profile: Omit<FinancialProfile, "id">) => {
-      if (!userId) throw new Error("Usuario nao autenticado");
+      if (!userId) throw new Error("Usuário não autenticado");
       await profileService.create(userId, profile);
       refresh();
     },

@@ -18,7 +18,7 @@ export function SimuladorPage({ summary }: WorkspacePageProps) {
 
   return (
     <div className="dashboard-grid">
-      <Panel title="Premissas do Cenario">
+      <Panel title="Premissas do Cenário">
         <div className="sim-controls">
           <label>
             <span>Corte mensal</span>
@@ -34,9 +34,9 @@ export function SimuladorPage({ summary }: WorkspacePageProps) {
       </Panel>
       <Panel title="Resultado Simulado">
         <div className="scenario-grid">
-          <MetricCard icon={Wallet} label="Saldo ajustado" value={formatMoney(scenario.adjustedBalance)} helper="Apos cortes e renda extra" tone={scenario.adjustedBalance > 0 ? "good" : "danger"} />
-          <MetricCard icon={Gauge} label="Novo Score" value={`${Math.round(scenario.adjustedScore)}/100`} helper="Estimativa por regras" tone={scoreTone(scenario.adjustedScore)} />
-          <MetricCard icon={Clock3} label="Recuperacao" value={`${scenario.recoveryMonths} meses`} helper="Para zerar divida prioritaria" tone={scenario.recoveryMonths <= 3 ? "good" : "warn"} />
+          <MetricCard icon={Wallet} label="Saldo ajustado" value={formatMoney(scenario.adjustedBalance)} helper="Após cortes e renda extra" tone={scenario.adjustedBalance > 0 ? "good" : "danger"} />
+          <MetricCard icon={Gauge} label="Nova Pontuação" value={`${Math.round(scenario.adjustedScore)}/100`} helper="Estimativa por regras" tone={scoreTone(scenario.adjustedScore)} />
+          <MetricCard icon={Clock3} label="Recuperação" value={`${scenario.recoveryMonths} meses`} helper="Para zerar dívida prioritária" tone={scenario.recoveryMonths <= 3 ? "good" : "warn"} />
           <MetricCard icon={TableProperties} label="Comprometimento" value={formatPercent(scenario.adjustedCommitment)} helper="Novo peso da renda" tone={scenario.adjustedCommitment > 0.7 ? "danger" : "good"} />
         </div>
       </Panel>

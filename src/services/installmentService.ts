@@ -51,8 +51,8 @@ export const installmentService = {
     const financedAmount = money(totalAmount - downPayment);
 
     if (totalAmount <= 0) throw new Error("Informe um valor total maior que zero.");
-    if (downPayment < 0) throw new Error("A entrada nao pode ser negativa.");
-    if (financedAmount <= 0) throw new Error("A entrada nao pode ser maior ou igual ao valor total.");
+    if (downPayment < 0) throw new Error("A entrada não pode ser negativa.");
+    if (financedAmount <= 0) throw new Error("A entrada não pode ser maior ou igual ao valor total.");
     if (purchase.totalInstallments < 1) throw new Error("Informe pelo menos uma parcela.");
 
     const client = getSupabase();
@@ -117,7 +117,7 @@ export const installmentService = {
         .single();
 
       if (transactionError) throw transactionError;
-      if (!transactionData?.id) throw new Error("Nao foi possivel registrar a entrada.");
+      if (!transactionData?.id) throw new Error("Não foi possível registrar a entrada.");
     }
 
     return (data ?? [])

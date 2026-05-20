@@ -12,7 +12,7 @@ export function ProfileSetupPage({
           <div className="brand-mark">CE</div>
           <div>
             <strong>Cadastro financeiro inicial</strong>
-            <span>Crie o perfil antes de carregar dashboard, importacoes e diagnosticos.</span>
+            <span>Crie o perfil antes de carregar o painel, importações e diagnósticos.</span>
           </div>
         </div>
         <ProfileSetupForm onSubmit={onSubmit} />

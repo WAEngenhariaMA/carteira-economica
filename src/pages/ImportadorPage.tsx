@@ -3,7 +3,7 @@ import { Upload } from "lucide-react";
 import { parseSpreadsheet, type ImportPreview } from "../lib/importer";
 import { importService, validateImportPreview, type ValidatedImportRow } from "../services/importService";
 import { EmptyState, IconBadge, Panel, RiskPill } from "../components/ui/FinanceUI";
-import { formatMoney } from "../lib/formatters";
+import { formatMoney, importFieldLabel } from "../lib/formatters";
 import type { WorkspacePageProps } from "../app/routes";
 
 export function ImportadorPage({ userId, workspace, refresh }: WorkspacePageProps) {
@@ -38,12 +38,12 @@ export function ImportadorPage({ userId, workspace, refresh }: WorkspacePageProp
 
   return (
     <div className="screen-stack">
-      <Panel title="Upload e Validacao">
+      <Panel title="Envio e Validação">
         <div className="upload-zone">
           <IconBadge icon={Upload} tone="neutral" />
           <div>
             <strong>Excel ou CSV</strong>
-            <span>O lote e registrado em import_batches, validado e so depois gravado como transacao.</span>
+            <span>O lote é registrado em import_batches, validado e só depois gravado como transação.</span>
           </div>
           <label className="primary-button file-button">
             Selecionar arquivo
@@ -65,9 +65,9 @@ export function ImportadorPage({ userId, workspace, refresh }: WorkspacePageProp
             <div className="mapping-grid">
               {["date", "description", "amount", "category", "card", "bank", "installment", "competence"].map((field) => (
                 <label className="mapping-card" key={field}>
-                  <span>{field}</span>
+                  <span>{importFieldLabel(field)}</span>
                   <select value={mapping[field] ?? ""} onChange={(event) => setMapping({ ...mapping, [field]: event.target.value })}>
-                    <option value="">Nao mapear</option>
+                    <option value="">Não mapear</option>
                     {preview.columns.map((column) => (
                       <option key={column} value={column}>{column}</option>
                     ))}
@@ -94,19 +94,19 @@ export function ImportadorPage({ userId, workspace, refresh }: WorkspacePageProp
                   }
                 }}
               >
-                {saving ? "Importando..." : "Confirmar importacao"}
+                {saving ? "Importando..." : "Confirmar importação"}
               </button>
             </div>
           </Panel>
 
-          <Panel title="Previa Validada" className="table-panel">
+          <Panel title="Prévia Validada" className="table-panel">
             <div className="data-table-wrap">
               <table className="data-table">
                 <thead>
                   <tr>
                     <th>Linha</th>
                     <th>Data</th>
-                    <th>Descricao</th>
+                    <th>Descrição</th>
                     <th>Categoria</th>
                     <th>Qualidade</th>
                     <th className="num">Valor</th>
@@ -120,7 +120,7 @@ export function ImportadorPage({ userId, workspace, refresh }: WorkspacePageProp
                       <td>{row.transaction.description || "-"}</td>
                       <td>{row.transaction.category}</td>
                       <td>
-                        {row.duplicate ? <RiskPill level="risk" label="duplicado" /> : row.issues.length > 0 ? <RiskPill level="critical" label={row.issues[0].message} /> : <RiskPill level="healthy" label="ok" />}
+                        {row.duplicate ? <RiskPill level="risk" label="Duplicado" /> : row.issues.length > 0 ? <RiskPill level="critical" label={row.issues[0].message} /> : <RiskPill level="healthy" label="OK" />}
                       </td>
                       <td className="num">{formatMoney(row.transaction.amount)}</td>
                     </tr>

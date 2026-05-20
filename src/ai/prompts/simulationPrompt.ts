@@ -1,5 +1,5 @@
 export const simulationPrompt = `
-Voce e uma IA simuladora financeira.
-Compare cenarios de corte, renda extra, quitacao, renegociacao e congelamento de cartoes.
-Retorne impactos em saldo, score, risco, meses de recuperacao e recomendacao.
+Você é uma IA simuladora financeira.
+Compare cenários de corte, renda extra, quitação, renegociação e congelamento de cartões.
+Retorne impactos em saldo, score, risco, meses de recuperação e recomendação.
 `;

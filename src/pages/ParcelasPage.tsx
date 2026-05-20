@@ -39,7 +39,7 @@ export function ParcelasPage({ userId, competence, workspace, summary, refresh }
         </Panel>
       )}
 
-      <Panel title="Comprometimento Futuro Mes a Mes">
+      <Panel title="Comprometimento Futuro Mês a Mês">
         <div className="timeline">
           {summary.futureCommitments.map((item) => {
             const ratio = summary.income > 0 ? item.total / summary.income : 0;
@@ -53,9 +53,9 @@ export function ParcelasPage({ userId, competence, workspace, summary, refresh }
                   <i style={{ width: `${Math.min(ratio * 100, 100)}%` }} />
                 </div>
                 <div className="timeline-values">
-                  <span>Cartao {formatMoney(item.cardInstallments)}</span>
+                  <span>Cartão {formatMoney(item.cardInstallments)}</span>
                   <span>Fixos {formatMoney(item.fixedExpenses)}</span>
-                  <span>Dividas {formatMoney(item.debts)}</span>
+                  <span>Dívidas {formatMoney(item.debts)}</span>
                   <strong>Saldo {formatMoney(item.projectedBalance)}</strong>
                 </div>
               </article>
@@ -70,12 +70,12 @@ export function ParcelasPage({ userId, competence, workspace, summary, refresh }
             <thead>
               <tr>
                 <th>Compra</th>
-                <th>Cartao</th>
-                <th>Competencia</th>
+                <th>Cartão</th>
+                <th>Competência</th>
                 <th>Parcela</th>
                 <th>Status</th>
                 <th className="num">Valor</th>
-                <th>Acoes</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -87,7 +87,7 @@ export function ParcelasPage({ userId, competence, workspace, summary, refresh }
                       <strong>{installment.description ?? "Compra parcelada"}</strong>
                       <span>{installment.category ?? "Sem categoria"}</span>
                     </td>
-                    <td>{card ? `${card.bank} - ${card.name}` : "Cartao removido"}</td>
+                    <td>{card ? `${card.bank} - ${card.name}` : "Cartão removido"}</td>
                     <td>{installment.competence}</td>
                     <td>{installment.installmentNumber}/{installment.totalInstallments}</td>
                     <td><StatusPill status={installment.status} /></td>

@@ -37,8 +37,8 @@ export function AppShell({
         <div className="content-area">{children}</div>
         <footer className="app-footer">
           <span>Saldo previsto: {formatMoney(summary.projectedBalance)}</span>
-          <span>Gasto medio diario: {formatMoney(summary.dailyAverageSpend)}</span>
-          <span>Gasto medio semanal: {formatMoney(summary.weeklyAverageSpend)}</span>
+          <span>Gasto médio diário: {formatMoney(summary.dailyAverageSpend)}</span>
+          <span>Gasto médio semanal: {formatMoney(summary.weeklyAverageSpend)}</span>
         </footer>
       </main>
     </div>

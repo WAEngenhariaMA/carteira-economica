@@ -1,14 +1,14 @@
-# Carteira Economica IA
+# Carteira Econômica IA
 
-Plataforma profissional de diagnostico e planejamento financeiro pessoal. A V1 ja nasce como um cockpit financeiro: dashboard executivo, score de saude financeira, diagnostico por regras, cartoes, faturas, parcelas futuras, importacao Excel, plano de acao, simulacao e PDF executivo.
+Plataforma profissional de diagnóstico e planejamento financeiro pessoal. A V1 já nasce como um cockpit financeiro: painel executivo, score de saúde financeira, diagnóstico por regras, cartões, faturas, parcelas futuras, importação Excel, plano de ação, simulação e PDF executivo.
 
-## Stack
+## Tecnologias
 
 - React + TypeScript + Vite
 - Chart.js / react-chartjs-2 para BI visual
 - read-excel-file para leitura local de Excel e parser CSV simples para extratos
-- jsPDF + AutoTable para relatorio executivo
-- Supabase Auth, Postgres, Edge Functions e RLS
+- jsPDF + AutoTable para relatório executivo
+- Supabase Auth, Postgres, Funções de borda (Edge Functions) e RLS
 - Lucide React para iconografia de produto
 
 ## Rodar localmente
@@ -18,7 +18,7 @@ npm install
 npm run dev
 ```
 
-Build de producao:
+Compilação de produção:
 
 ```bash
 npm run build
@@ -32,51 +32,51 @@ npm run build
 4. Preencha:
 
 ```bash
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_ANON_KEY=sua-chave-anon
 ```
 
-O app agora exige Supabase configurado para operar como produto. Sem as variaveis `.env.local`, ele exibe uma tela de configuracao obrigatoria em vez de usar dados demo.
+O app agora exige Supabase configurado para operar como produto. Sem as variáveis `.env.local`, ele exibe uma tela de configuração obrigatória em vez de usar dados demo.
 
-## Modulos entregues
+## Módulos entregues
 
-- Dashboard executivo com KPIs, score, risco e projecao
-- Login, cadastro, confirmacao por e-mail via Supabase, reset de senha, controle de sessao e logout
-- Protecao de acesso: dados carregados apenas para `auth.uid()` do usuario logado
-- Cadastro financeiro inicial quando o usuario ainda nao possui perfil
-- Servicos Supabase em `src/services/*` para Auth, perfil, transacoes, cartoes, faturas, parcelas, importacoes, diagnosticos, planos e relatorios
+- Painel executivo com KPIs, score, risco e projeção
+- Acesso, cadastro, confirmação por e-mail via Supabase, redefinição de senha, controle de sessão e logout
+- Proteção de acesso: dados carregados apenas para `auth.uid()` do usuário logado
+- Cadastro financeiro inicial quando o usuário ainda não possui perfil
+- Serviços Supabase em `src/services/*` para Auth, perfil, transações, cartões, faturas, parcelas, importações, diagnósticos, planos e relatórios
 - Receitas e despesas classificadas por essencialidade
-- Modulo de cartoes com limite, fatura, vencimento, crescimento e risco
-- Faturas e parcelas futuras com visao mes a mes
-- Importador Excel/CSV com lote em `import_batches`, mapeamento, validacao, duplicidade e persistencia
-- Diagnostico financeiro por regras tecnicas
-- Plano de acao priorizado por impacto e prazo
+- Módulo de cartões com limite, fatura, vencimento, crescimento e risco
+- Faturas e parcelas futuras com visão mês a mês
+- Importador Excel/CSV com lote em `import_batches`, mapeamento, validação, duplicidade e persistência
+- Diagnóstico financeiro por regras técnicas
+- Plano de ação priorizado por impacto e prazo
 - Metas financeiras e alertas inteligentes
 - Simulador de corte mensal e renda extra
-- Relatorio PDF com leitura executiva
-- Schema Supabase com tabelas, enums, indices, auditoria, qualidade de dados, logs de IA e RLS por usuario
-- Estrutura inicial de IA em `src/ai/*` e Edge Functions em `supabase/functions/*`
+- Relatório PDF com leitura executiva
+- Schema Supabase com tabelas, enums, índices, auditoria, qualidade de dados, logs de IA e RLS por usuário
+- Estrutura inicial de IA em `src/ai/*` e funções de borda em `supabase/functions/*`
 
 ## Conceito visual
 
-O conceito de referencia gerado para a direcao visual esta em:
+O conceito de referência gerado para a direção visual está em:
 
 `docs/concepts/dashboard-concept.png`
 
-## Roadmap recomendado
+## Roteiro recomendado
 
-1. Conectar Auth Supabase e persistencia real por usuario.
-2. Salvar importacoes, transacoes, cartoes, faturas e diagnosticos no Postgres.
-3. Criar Edge Functions para classificacao automatica, diagnostico e relatorios.
-4. Adicionar IA classificadora, IA diagnostica, IA consultora e IA de simulacao.
-5. Implementar o corpo real das Edge Functions com chamada ao modelo de IA e logs em `ai_logs`.
-6. Separar jsPDF e o parser de Excel em chunks com importacao dinamica.
+1. Conectar Auth Supabase e persistência real por usuário.
+2. Salvar importações, transações, cartões, faturas e diagnósticos no Postgres.
+3. Criar funções de borda para classificação automática, diagnóstico e relatórios.
+4. Adicionar IA classificadora, IA diagnóstica, IA consultora e IA de simulação.
+5. Implementar o corpo real das funções de borda com chamada ao modelo de IA e logs em `ai_logs`.
+6. Separar jsPDF e o parser de Excel em chunks com importação dinâmica.
 7. Adicionar planos, assinatura, painel administrativo e limites de uso.
 8. Publicar no GitHub e fazer deploy na Vercel.
 
-## Build em outro sistema operacional
+## Compilação em outro sistema operacional
 
-Se o projeto for copiado entre Windows/Linux/macOS com `node_modules`, reinstale dependencias no destino:
+Se o projeto for copiado entre Windows/Linux/macOS com `node_modules`, reinstale dependências no destino:
 
 ```bash
 rmdir /s /q node_modules

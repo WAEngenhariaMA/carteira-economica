@@ -1,6 +1,7 @@
 import { Bell } from "lucide-react";
 import { IconBadge, RiskPill } from "../components/ui/FinanceUI";
 import { buildAlerts } from "../lib/financeEngine";
+import { alertSourceLabel } from "../lib/formatters";
 import type { WorkspacePageProps } from "../app/routes";
 
 export function AlertasPage({ workspace, summary }: WorkspacePageProps) {
@@ -15,17 +16,17 @@ export function AlertasPage({ workspace, summary }: WorkspacePageProps) {
             <RiskPill level={alert.level} />
             <h3>{alert.title}</h3>
             <p>{alert.message}</p>
-            <span>{alert.source}</span>
+            <span>{alertSourceLabel(alert.source)}</span>
           </div>
         </article>
       ))}
       {alerts.length === 0 && (
         <article className="alert-card">
-          <IconBadge icon={Bell} tone="good" />
-          <div>
-            <RiskPill level="healthy" />
-            <h3>Nenhum alerta critico</h3>
-            <p>A base atual nao aponta vencimentos, duplicidades ou pressao critica.</p>
+            <IconBadge icon={Bell} tone="good" />
+            <div>
+              <RiskPill level="healthy" />
+            <h3>Nenhum alerta crítico</h3>
+            <p>A base atual não aponta vencimentos, duplicidades ou pressão crítica.</p>
           </div>
         </article>
       )}

@@ -54,7 +54,7 @@ export function ProfileSetupForm({ onSubmit }: { onSubmit: (profile: Omit<Financ
       </label>
       <label>
         Reserva atual
-        <input value={form.currentReserve} type="number" min="0" onChange={(event) => setForm({ ...form, currentReserve: event.target.value })} />
+        <input value={form.currentReserve} type="number" min="0" placeholder="Opcional" onChange={(event) => setForm({ ...form, currentReserve: event.target.value })} />
       </label>
       <label>
         Meta de reserva

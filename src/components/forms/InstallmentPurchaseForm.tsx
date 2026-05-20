@@ -62,7 +62,7 @@ export function InstallmentPurchaseForm({
         totalInstallments: "2",
       }));
     } catch (submissionError) {
-      setError(submissionError instanceof Error ? submissionError.message : "Nao foi possivel cadastrar o parcelamento.");
+      setError(submissionError instanceof Error ? submissionError.message : "Não foi possível cadastrar o parcelamento.");
     } finally {
       setSaving(false);
     }
@@ -71,8 +71,8 @@ export function InstallmentPurchaseForm({
   if (cards.length === 0) {
     return (
       <div className="form-empty">
-        <strong>Cadastre um cartao primeiro.</strong>
-        <span>O parcelamento precisa estar vinculado a um cartao para entrar na projecao futura.</span>
+        <strong>Cadastre um cartão primeiro.</strong>
+        <span>O parcelamento precisa estar vinculado a um cartão para entrar na projeção futura.</span>
       </div>
     );
   }
@@ -80,13 +80,13 @@ export function InstallmentPurchaseForm({
   return (
     <form className="entry-form installment-form" onSubmit={handleSubmit}>
       <label>
-        Cartao
+        Cartão
         <select value={form.cardId} onChange={(event) => setForm({ ...form, cardId: event.target.value })} required>
           {cards.map((card) => <option key={card.id} value={card.id}>{card.bank} - {card.name}</option>)}
         </select>
       </label>
       <label>
-        Descricao da compra
+        Descrição da compra
         <input value={form.description} placeholder="Ex.: Notebook, pneus, viagem" onChange={(event) => setForm({ ...form, description: event.target.value })} required />
       </label>
       <label>
@@ -106,11 +106,11 @@ export function InstallmentPurchaseForm({
         <input value={form.downPayment} type="number" min="0" step="0.01" onChange={(event) => setForm({ ...form, downPayment: event.target.value })} />
       </label>
       <label>
-        Numero de parcelas
+        Número de parcelas
         <input value={form.totalInstallments} type="number" min="1" step="1" onChange={(event) => setForm({ ...form, totalInstallments: event.target.value })} required />
       </label>
       <label>
-        Primeira competencia
+        Primeira competência
         <input value={form.firstCompetence} type="month" onChange={(event) => setForm({ ...form, firstCompetence: event.target.value })} required />
       </label>
       <div className="installment-preview">
@@ -123,7 +123,7 @@ export function InstallmentPurchaseForm({
       </button>
       {downPayment >= totalAmount && totalAmount > 0 && <p className="form-error inline-message">Entrada precisa ser menor que o valor total.</p>}
       {error && <p className="form-error inline-message">{error}</p>}
-      {saved && <p className="form-success inline-message">Parcelamento cadastrado nas competencias futuras.</p>}
+      {saved && <p className="form-success inline-message">Parcelamento cadastrado nas competências futuras.</p>}
     </form>
   );
 }

@@ -21,7 +21,7 @@ export function CartoesPage({ userId, workspace, refresh }: WorkspacePageProps) 
 
   return (
     <div className="screen-stack">
-      <Panel title={editing ? "Editar Cartao" : "Cadastrar Cartao"}>
+      <Panel title={editing ? "Editar Cartão" : "Cadastrar Cartão"}>
         <CardForm
           initialValue={editing}
           onCancel={() => setEditing(null)}
@@ -37,7 +37,7 @@ export function CartoesPage({ userId, workspace, refresh }: WorkspacePageProps) 
         />
       </Panel>
       <div className="dashboard-grid">
-        <Panel title="Analise por Cartao">
+        <Panel title="Análise por Cartão">
           <div className="card-list">
             {workspace.cards.map((card) => {
               const ratio = card.limit > 0 ? card.currentInvoice / card.limit : 0;
@@ -59,13 +59,13 @@ export function CartoesPage({ userId, workspace, refresh }: WorkspacePageProps) 
                     <div><i style={{ width: `${Math.min(ratio * 100, 100)}%` }} /></div>
                   </div>
                   <div className="card-actions">
-                    <button className="ghost-button icon-only" type="button" aria-label="Editar cartao" onClick={() => setEditing(card)}>
+                    <button className="ghost-button icon-only" type="button" aria-label="Editar cartão" onClick={() => setEditing(card)}>
                       <Pencil size={15} />
                     </button>
                     <button
                       className="ghost-button icon-only"
                       type="button"
-                      aria-label="Excluir cartao"
+                      aria-label="Excluir cartão"
                       onClick={async () => {
                         await cardService.remove(userId, card.id);
                         if (editing?.id === card.id) setEditing(null);
@@ -89,13 +89,13 @@ export function CartoesPage({ userId, workspace, refresh }: WorkspacePageProps) 
           <table className="data-table">
             <thead>
               <tr>
-                <th>Cartao</th>
+                <th>Cartão</th>
                 <th>Limite</th>
                 <th>Fatura</th>
                 <th>Vencimento</th>
                 <th>Parcelas futuras</th>
                 <th>Risco</th>
-                <th>Acoes</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -113,13 +113,13 @@ export function CartoesPage({ userId, workspace, refresh }: WorkspacePageProps) 
                     <td>{formatMoney(card.futureInstallments.reduce((acc, value) => acc + value, 0))}</td>
                     <td><RiskPill level={ratio > 0.45 ? "critical" : ratio > 0.3 ? "risk" : "attention"} /></td>
                     <td className="table-actions">
-                      <button className="ghost-button icon-only" type="button" aria-label="Editar cartao" onClick={() => setEditing(card)}>
+                      <button className="ghost-button icon-only" type="button" aria-label="Editar cartão" onClick={() => setEditing(card)}>
                         <Pencil size={15} />
                       </button>
                       <button
                         className="ghost-button icon-only"
                         type="button"
-                        aria-label="Excluir cartao"
+                        aria-label="Excluir cartão"
                         onClick={async () => {
                           await cardService.remove(userId, card.id);
                           if (editing?.id === card.id) setEditing(null);

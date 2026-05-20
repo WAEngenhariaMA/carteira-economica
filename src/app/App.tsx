@@ -68,7 +68,7 @@ function ProtectedApp() {
   }, [auth.user, competence, workspaceState.data, workspaceState.refresh, workspaceState.summary]);
 
   if (!auth.configured) return <SupabaseSetupPage />;
-  if (auth.loading) return <LoadingState label="Validando sessao" />;
+  if (auth.loading) return <LoadingState label="Validando sessão" />;
   if (!auth.session || !auth.user) return <AuthPage />;
   if (workspaceState.loading) return <LoadingState />;
   if (workspaceState.error) return <ErrorState message={workspaceState.error} onRetry={workspaceState.refresh} />;

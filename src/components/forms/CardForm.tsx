@@ -58,7 +58,7 @@ export function CardForm({
         <input value={form.bank} onChange={(event) => setForm({ ...form, bank: event.target.value })} required />
       </label>
       <label>
-        Nome do cartao
+        Nome do cartão
         <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
       </label>
       <label>
@@ -79,11 +79,11 @@ export function CardForm({
       </label>
       <div className="form-actions">
         <button className="primary-button" type="submit" disabled={saving}>
-          {saving ? "Salvando..." : initialValue ? "Atualizar cartao" : "Cadastrar cartao"}
+          {saving ? "Salvando..." : initialValue ? "Atualizar cartão" : "Cadastrar cartão"}
         </button>
         {initialValue && onCancel && (
           <button className="ghost-button" type="button" onClick={onCancel}>
-            Cancelar edicao
+            Cancelar edição
           </button>
         )}
       </div>

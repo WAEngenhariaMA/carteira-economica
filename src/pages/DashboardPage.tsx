@@ -17,7 +17,7 @@ function HealthScore({ props }: { props: WorkspacePageProps }) {
   const scoreStyle = { "--score": `${summary.healthScore * 3.6}deg` } as React.CSSProperties;
 
   return (
-    <Panel title="Saude Financeira" className="score-panel">
+    <Panel title="Saúde Financeira" className="score-panel">
       <div className="score-layout">
         <div className={`score-ring ${scoreTone(summary.healthScore)}`} style={scoreStyle}>
           <div>
@@ -28,7 +28,7 @@ function HealthScore({ props }: { props: WorkspacePageProps }) {
         <div className="score-copy">
           <RiskPill level={summary.riskLevel} />
           <h3>{summary.financialStatus}</h3>
-          <p>Analise calculada com dados reais da competencia selecionada e registros vinculados ao usuario logado.</p>
+          <p>Análise calculada com dados reais da competência selecionada e registros vinculados ao usuário logado.</p>
           <div className="rule-row">
             <span>{summary.adaptiveBudget.label}</span>
             <strong>
@@ -45,7 +45,7 @@ function HealthScore({ props }: { props: WorkspacePageProps }) {
 
 function CardsModule({ props }: { props: WorkspacePageProps }) {
   return (
-    <Panel title="Modulo de Cartoes" action={<RiskPill level={props.summary.cardIncomeRatio > 0.3 ? "risk" : "healthy"} label="Risco consolidado" />}>
+    <Panel title="Módulo de Cartões" action={<RiskPill level={props.summary.cardIncomeRatio > 0.3 ? "risk" : "healthy"} label="Risco consolidado" />}>
       <div className="card-list">
         {props.workspace.cards.map((card) => {
           const usage = card.limit > 0 ? card.currentInvoice / card.limit : 0;
@@ -117,15 +117,15 @@ export function DashboardPage(props: WorkspacePageProps) {
     labels: summary.futureCommitments.map((item) => item.month),
     datasets: [
       { label: "Parcelas", data: summary.futureCommitments.map((item) => item.cardInstallments), backgroundColor: "#0f766e", borderRadius: 6 },
-      { label: "Dividas", data: summary.futureCommitments.map((item) => item.debts), backgroundColor: "#b45309", borderRadius: 6 },
+      { label: "Dívidas", data: summary.futureCommitments.map((item) => item.debts), backgroundColor: "#b45309", borderRadius: 6 },
     ],
   };
 
   return (
     <div className="screen-stack">
       <div className="kpi-grid">
-        <MetricCard icon={CircleDollarSign} label="Renda Mensal" value={formatMoney(summary.income)} helper="Receita confirmada no mes" tone="good" />
-        <MetricCard icon={TrendingDown} label="Renda Comprometida" value={formatPercent(summary.committedIncomeRatio)} helper="Fixos, faturas e dividas" tone={summary.committedIncomeRatio > 0.7 ? "danger" : "warn"} />
+        <MetricCard icon={CircleDollarSign} label="Renda Mensal" value={formatMoney(summary.income)} helper="Receita confirmada no mês" tone="good" />
+        <MetricCard icon={TrendingDown} label="Renda Comprometida" value={formatPercent(summary.committedIncomeRatio)} helper="Fixos, faturas e dívidas" tone={summary.committedIncomeRatio > 0.7 ? "danger" : "warn"} />
         <MetricCard icon={WalletCards} label="Faturas" value={formatMoney(summary.cardInvoices)} helper={`${formatPercent(summary.cardIncomeRatio)} da renda`} tone={summary.cardIncomeRatio > 0.3 ? "danger" : "neutral"} />
         <MetricCard icon={BadgeCheck} label="Economia Potencial" value={formatMoney(summary.potentialSavings)} helper="Cortes sem mexer no essencial" tone="good" />
         <MetricCard icon={Wallet} label="Saldo Previsto" value={formatMoney(summary.projectedBalance)} helper="Depois dos compromissos" tone={summary.projectedBalance >= 0 ? "good" : "danger"} />
@@ -133,7 +133,7 @@ export function DashboardPage(props: WorkspacePageProps) {
 
       <div className="dashboard-grid">
         <HealthScore props={props} />
-        <Panel title="Projecao de Fluxo" className="chart-panel">
+        <Panel title="Projeção de Fluxo" className="chart-panel">
           <Line data={cashflowData} options={chartOptions} />
         </Panel>
       </div>
@@ -145,7 +145,7 @@ export function DashboardPage(props: WorkspacePageProps) {
         <Panel title="Parcelas Futuras" className="chart-panel">
           <Bar data={installmentChart} options={chartOptions} />
         </Panel>
-        <Panel title="Diagnostico Executivo">
+        <Panel title="Diagnóstico Executivo">
           <div className="insight-list">
             {diagnostics.slice(0, 3).map((item) => (
               <article className="insight-row" key={item.id}>
@@ -160,8 +160,8 @@ export function DashboardPage(props: WorkspacePageProps) {
               <article className="insight-row">
                 <IconBadge icon={Brain} tone="good" />
                 <div>
-                  <strong>Nenhum alerta tecnico relevante</strong>
-                  <p>Continue alimentando a base para manter o diagnostico confiavel.</p>
+                  <strong>Nenhum alerta técnico relevante</strong>
+                  <p>Continue alimentando a base para manter o diagnóstico confiável.</p>
                 </div>
               </article>
             )}
@@ -171,7 +171,7 @@ export function DashboardPage(props: WorkspacePageProps) {
 
       <div className="dashboard-grid lower">
         <CardsModule props={props} />
-        <Panel title="Plano de Acao">
+        <Panel title="Plano de Ação">
           <div className="action-list">
             {workspace.actions.slice(0, 5).map((action) => (
               <article className="action-row" key={action.id}>

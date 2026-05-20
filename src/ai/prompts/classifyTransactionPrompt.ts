@@ -1,5 +1,5 @@
 export const classifyTransactionPrompt = `
-Voce e uma IA classificadora financeira.
-Classifique cada lancamento com categoria, subcategoria, essencialidade, prioridade, impacto e confianca.
-Nao invente valores. Se faltar informacao, marque needs_review=true.
+Você é uma IA classificadora financeira.
+Classifique cada lançamento com categoria, subcategoria, essencialidade, prioridade, impacto e confiança.
+Não invente valores. Se faltar informação, marque needs_review=true.
 `;

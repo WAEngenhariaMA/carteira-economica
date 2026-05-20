@@ -57,7 +57,7 @@ export function ActionForm({
   return (
     <form className="entry-form" onSubmit={handleSubmit}>
       <label>
-        Titulo
+        Título
         <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} required />
       </label>
       <label>
@@ -69,7 +69,7 @@ export function ActionForm({
         <select value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value as ActionItem["priority"] })}>
           <option value="urgent">Urgente</option>
           <option value="high">Alta</option>
-          <option value="medium">Media</option>
+          <option value="medium">Média</option>
           <option value="low">Baixa</option>
         </select>
       </label>
@@ -90,7 +90,7 @@ export function ActionForm({
         Dificuldade
         <select value={form.difficulty} onChange={(event) => setForm({ ...form, difficulty: event.target.value as ActionItem["difficulty"] })}>
           <option value="baixa">Baixa</option>
-          <option value="media">Media</option>
+          <option value="media">Média</option>
           <option value="alta">Alta</option>
         </select>
       </label>
@@ -99,16 +99,16 @@ export function ActionForm({
         <select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as ActionItem["status"] })}>
           <option value="planned">Planejada</option>
           <option value="running">Em andamento</option>
-          <option value="done">Concluida</option>
+          <option value="done">Concluída</option>
         </select>
       </label>
       <div className="form-actions">
         <button className="primary-button" type="submit" disabled={saving}>
-          {saving ? "Salvando..." : initialValue ? "Atualizar acao" : "Salvar acao"}
+          {saving ? "Salvando..." : initialValue ? "Atualizar ação" : "Salvar ação"}
         </button>
         {initialValue && onCancel && (
           <button className="ghost-button" type="button" onClick={onCancel}>
-            Cancelar edicao
+            Cancelar edição
           </button>
         )}
       </div>

@@ -15,9 +15,9 @@ export function ReceitasPage({ userId, competence, workspace, summary, refresh }
   return (
     <div className="screen-stack">
       <div className="kpi-grid compact">
-        <MetricCard icon={Banknote} label="Receita Confirmada" value={formatMoney(summary.income)} helper="Entradas no mes" tone="good" />
-        <MetricCard icon={TrendingUp} label="Renda Ideal" value={formatMoney(workspace.profile.idealIncome)} helper="Para regra confortavel" tone="neutral" />
-        <MetricCard icon={Gauge} label="Gap de Renda" value={formatMoney(Math.max(workspace.profile.idealIncome - summary.income, 0))} helper="Distancia para conforto" tone="warn" />
+        <MetricCard icon={Banknote} label="Receita Confirmada" value={formatMoney(summary.income)} helper="Entradas no mês" tone="good" />
+        <MetricCard icon={TrendingUp} label="Renda Ideal" value={formatMoney(workspace.profile.idealIncome)} helper="Para regra confortável" tone="neutral" />
+        <MetricCard icon={Gauge} label="Diferença de Renda" value={formatMoney(Math.max(workspace.profile.idealIncome - summary.income, 0))} helper="Distância para conforto" tone="warn" />
       </div>
       <Panel title={editing ? "Editar Receita" : "Cadastrar Receita"}>
         <TransactionForm

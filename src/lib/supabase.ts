@@ -11,13 +11,13 @@ export const supabase = supabaseConfigured
 
 export function getSupabase() {
   if (!supabase) {
-    throw new Error("Supabase nao configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.");
+    throw new Error("Supabase não configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.");
   }
 
   return supabase;
 }
 
-export function assertSingle<T>(data: T | null, fallbackMessage = "Registro nao encontrado") {
+export function assertSingle<T>(data: T | null, fallbackMessage = "Registro não encontrado") {
   if (!data) {
     throw new Error(fallbackMessage);
   }

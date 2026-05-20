@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Pencil, Trash2 } from "lucide-react";
-import { formatMoney } from "../../lib/formatters";
+import { essentialityLabel, formatMoney, paymentRailLabel, statusLabel } from "../../lib/formatters";
 import type { Transaction } from "../../types/finance";
 
 export function MoneyTable({
@@ -21,13 +21,13 @@ export function MoneyTable({
         <thead>
           <tr>
             <th>Data</th>
-            <th>Descricao</th>
+            <th>Descrição</th>
             <th>Categoria</th>
             <th>Origem</th>
             <th>Essencialidade</th>
             <th>Status</th>
             <th className="num">Valor</th>
-            {(onEdit || onDelete) && <th>Acoes</th>}
+            {(onEdit || onDelete) && <th>Ações</th>}
           </tr>
         </thead>
         <tbody>
@@ -39,22 +39,22 @@ export function MoneyTable({
                 <span>{row.subcategory || "Sem subcategoria"}</span>
               </td>
               <td>{row.category}</td>
-              <td>{row.paymentRail}</td>
+              <td>{paymentRailLabel(row.paymentRail)}</td>
               <td>
-                <span className={clsx("tag", `tag-${row.essentiality}`)}>{row.essentiality}</span>
+                <span className={clsx("tag", `tag-${row.essentiality}`)}>{essentialityLabel(row.essentiality)}</span>
               </td>
-              <td>{row.status}</td>
+              <td>{statusLabel(row.status)}</td>
               <td className="num">{formatMoney(row.amount)}</td>
               {(onEdit || onDelete) && (
                 <td className="table-actions">
                   {onEdit && (
-                    <button className="ghost-button icon-only" type="button" aria-label="Editar lancamento" onClick={() => onEdit(row)}>
+                    <button className="ghost-button icon-only" type="button" aria-label="Editar lançamento" onClick={() => onEdit(row)}>
                       <Pencil size={15} />
                     </button>
                   )}
                   {onDelete && (
-                    <button className="ghost-button icon-only" type="button" aria-label="Excluir lancamento" onClick={() => onDelete(row.id)}>
-                    <Trash2 size={15} />
+                    <button className="ghost-button icon-only" type="button" aria-label="Excluir lançamento" onClick={() => onDelete(row.id)}>
+                      <Trash2 size={15} />
                     </button>
                   )}
                 </td>

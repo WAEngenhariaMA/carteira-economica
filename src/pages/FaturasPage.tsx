@@ -47,7 +47,7 @@ export function FaturasPage({ userId, competence, workspace, refresh }: Workspac
           }}
         >
           <label>
-            Cartao
+            Cartão
             <select value={form.cardId} onChange={(event) => setForm({ ...form, cardId: event.target.value })} required>
               {workspace.cards.map((card) => <option key={card.id} value={card.id}>{card.bank} - {card.name}</option>)}
             </select>
@@ -73,23 +73,23 @@ export function FaturasPage({ userId, competence, workspace, refresh }: Workspac
             <button className="primary-button" type="submit">{editing ? "Atualizar fatura" : "Salvar fatura"}</button>
             {editing && (
               <button className="ghost-button" type="button" onClick={resetForm}>
-                Cancelar edicao
+                Cancelar edição
               </button>
             )}
           </div>
         </form>
       </Panel>
-      <Panel title="Faturas da Competencia" className="table-panel">
+      <Panel title="Faturas da Competência" className="table-panel">
         <div className="data-table-wrap">
           <table className="data-table">
             <thead>
               <tr>
-                <th>Cartao</th>
-                <th>Competencia</th>
+                <th>Cartão</th>
+                <th>Competência</th>
                 <th>Vencimento</th>
                 <th>Status</th>
                 <th className="num">Valor</th>
-                <th>Acoes</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -97,7 +97,7 @@ export function FaturasPage({ userId, competence, workspace, refresh }: Workspac
                 const card = workspace.cards.find((item) => item.id === invoice.cardId);
                 return (
                   <tr key={invoice.id}>
-                    <td>{card ? `${card.bank} - ${card.name}` : "Cartao removido"}</td>
+                    <td>{card ? `${card.bank} - ${card.name}` : "Cartão removido"}</td>
                     <td>{invoice.competence}</td>
                     <td>{invoice.dueDate}</td>
                     <td><StatusPill status={invoice.status} /></td>

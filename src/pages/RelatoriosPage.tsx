@@ -10,8 +10,8 @@ export function RelatoriosPage({ workspace, summary, onReport }: WorkspacePagePr
         <div className="report-hero">
           <span className="icon-badge tone-neutral"><FileText size={18} /></span>
           <div>
-            <strong>Relatorio de consultoria financeira</strong>
-            <span>Capa, resumo executivo, indicadores, riscos, cartoes, parcelas, plano e alertas.</span>
+            <strong>Relatório de consultoria financeira</strong>
+            <span>Capa, resumo executivo, indicadores, riscos, cartões, parcelas, plano e alertas.</span>
           </div>
           <button className="primary-button" type="button" onClick={onReport}>
             <Download size={17} />
@@ -20,9 +20,9 @@ export function RelatoriosPage({ workspace, summary, onReport }: WorkspacePagePr
         </div>
       </Panel>
       <div className="kpi-grid compact">
-        <MetricCard icon={Gauge} label="Score" value={`${summary.healthScore}/100`} helper="Score atual" tone="warn" />
-        <MetricCard icon={Brain} label="Achados" value={`${buildDiagnostics(summary, workspace.cards, workspace.debts).length}`} helper="Regras tecnicas ativas" tone="warn" />
-        <MetricCard icon={ListChecks} label="Acoes" value={`${workspace.actions.length}`} helper="Priorizadas por impacto" tone="good" />
+        <MetricCard icon={Gauge} label="Pontuação" value={`${summary.healthScore}/100`} helper="Pontuação atual" tone="warn" />
+        <MetricCard icon={Brain} label="Achados" value={`${buildDiagnostics(summary, workspace.cards, workspace.debts).length}`} helper="Regras técnicas ativas" tone="warn" />
+        <MetricCard icon={ListChecks} label="Ações" value={`${workspace.actions.length}`} helper="Priorizadas por impacto" tone="good" />
       </div>
     </div>
   );

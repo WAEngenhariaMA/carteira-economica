@@ -9,14 +9,14 @@ export interface ImportPreview {
 }
 
 const aliases: Record<string, string[]> = {
-  date: ["data", "dt", "lancamento", "data compra", "data movimento"],
-  description: ["descricao", "historico", "detalhe", "estabelecimento", "memo"],
-  amount: ["valor", "vlr", "amount", "debito", "credito"],
-  category: ["categoria", "grupo", "classificacao"],
-  card: ["cartao", "card", "bandeira"],
-  bank: ["banco", "conta", "instituicao"],
+  date: ["data", "dt", "lançamento", "lancamento", "data compra", "data movimento"],
+  description: ["descrição", "descricao", "histórico", "historico", "detalhe", "estabelecimento", "memo"],
+  amount: ["valor", "vlr", "amount", "débito", "debito", "crédito", "credito"],
+  category: ["categoria", "grupo", "classificação", "classificacao"],
+  card: ["cartão", "cartao", "card", "bandeira"],
+  bank: ["banco", "conta", "instituição", "instituicao"],
   installment: ["parcela", "n parcela", "parcelamento"],
-  competence: ["competencia", "mes", "referencia"],
+  competence: ["competência", "competencia", "mês", "mes", "referência", "referencia"],
 };
 
 function normalize(value: string) {

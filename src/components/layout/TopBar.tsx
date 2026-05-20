@@ -28,7 +28,7 @@ export function TopBar({
     <header className="topbar">
       <div>
         <label className="month-filter">
-          Competencia
+          Competência
           <input value={competence} type="month" onChange={(event) => onCompetenceChange(event.target.value)} />
         </label>
         <h1>{screenTitles[activeScreen]}</h1>
@@ -37,7 +37,7 @@ export function TopBar({
       <div className="topbar-actions">
         <label className="searchbox">
           <Search size={17} />
-          <input placeholder="Buscar lancamentos, cartoes, categorias" />
+          <input placeholder="Buscar lançamentos, cartões, categorias" />
         </label>
         <button className="ghost-button" type="button">
           <Filter size={17} />

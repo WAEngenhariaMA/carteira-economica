@@ -71,7 +71,7 @@ export function GoalForm({
         <select value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value as Goal["priority"] })}>
           <option value="urgent">Urgente</option>
           <option value="high">Alta</option>
-          <option value="medium">Media</option>
+          <option value="medium">Média</option>
           <option value="low">Baixa</option>
         </select>
       </label>
@@ -81,7 +81,7 @@ export function GoalForm({
         </button>
         {initialValue && onCancel && (
           <button className="ghost-button" type="button" onClick={onCancel}>
-            Cancelar edicao
+            Cancelar edição
           </button>
         )}
       </div>

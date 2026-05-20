@@ -18,9 +18,9 @@ export function DespesasPage({ userId, competence, workspace, summary, refresh }
   return (
     <div className="screen-stack">
       <div className="kpi-grid compact">
-        <MetricCard icon={ReceiptText} label="Despesas Diretas" value={formatMoney(summary.directFixedExpenses + summary.directVariableExpenses)} helper="Fora cartao" tone="neutral" />
-        <MetricCard icon={SlidersHorizontal} label="Cortavel" value={formatMoney(cuttable)} helper="Superfluo e impulsivo" tone="good" />
-        <MetricCard icon={ShieldAlert} label="Impacto Cartao" value={formatMoney(summary.cardInvoices)} helper="Fatura consolidada" tone="danger" />
+        <MetricCard icon={ReceiptText} label="Despesas Diretas" value={formatMoney(summary.directFixedExpenses + summary.directVariableExpenses)} helper="Fora do cartão" tone="neutral" />
+        <MetricCard icon={SlidersHorizontal} label="Cortável" value={formatMoney(cuttable)} helper="Supérfluo e impulsivo" tone="good" />
+        <MetricCard icon={ShieldAlert} label="Impacto do Cartão" value={formatMoney(summary.cardInvoices)} helper="Fatura consolidada" tone="danger" />
       </div>
       <Panel title={editing ? "Editar Despesa" : "Cadastrar Despesa"}>
         <TransactionForm

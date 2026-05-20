@@ -30,10 +30,10 @@ export function AuthPage() {
       }
       if (mode === "reset") {
         await auth.resetPassword(email);
-        setMessage("Enviamos um link de redefinicao para seu e-mail.");
+        setMessage("Enviamos um link de redefinição para seu e-mail.");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha na autenticacao");
+      setError(err instanceof Error ? err.message : "Falha na autenticação");
     } finally {
       setLoading(false);
     }
@@ -45,14 +45,14 @@ export function AuthPage() {
         <div className="brand auth-brand">
           <div className="brand-mark">CE</div>
           <div>
-            <strong>Carteira Economica IA</strong>
-            <span>Plataforma profissional de inteligencia financeira</span>
+            <strong>Carteira Econômica IA</strong>
+            <span>Plataforma profissional de inteligência financeira</span>
           </div>
         </div>
         <div className="auth-copy">
           <ShieldCheck size={34} />
           <h1>{mode === "login" ? "Acesse sua central financeira" : mode === "signup" ? "Crie sua conta" : "Redefina sua senha"}</h1>
-          <p>Autenticacao via Supabase Auth, sessao protegida e dados isolados por RLS.</p>
+          <p>Autenticação via Supabase Auth, sessão protegida e dados isolados por RLS.</p>
         </div>
         <form className="auth-form" onSubmit={handleSubmit}>
           {mode === "signup" && (
@@ -78,7 +78,7 @@ export function AuthPage() {
           </button>
         </form>
         <div className="auth-switch">
-          <button type="button" onClick={() => setMode("login")}>Login</button>
+          <button type="button" onClick={() => setMode("login")}>Entrar</button>
           <button type="button" onClick={() => setMode("signup")}>Cadastro</button>
           <button type="button" onClick={() => setMode("reset")}>Esqueci a senha</button>
         </div>

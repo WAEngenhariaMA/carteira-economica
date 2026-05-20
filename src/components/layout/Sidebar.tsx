@@ -8,12 +8,12 @@ export function Sidebar({ activeScreen, onSelect }: { activeScreen: ScreenId; on
       <div className="brand">
         <div className="brand-mark">CE</div>
         <div>
-          <strong>Carteira Economica IA</strong>
-          <span>Financial Intelligence OS</span>
+          <strong>Carteira Econômica IA</strong>
+          <span>Sistema de Inteligência Financeira</span>
         </div>
       </div>
 
-      <nav className="sidebar-nav" aria-label="Navegacao principal">
+      <nav className="sidebar-nav" aria-label="Navegação principal">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -31,7 +31,7 @@ export function Sidebar({ activeScreen, onSelect }: { activeScreen: ScreenId; on
       </nav>
 
       <div className="sidebar-footer">
-        <span className="risk-pill risk-healthy">Sessao protegida</span>
+        <span className="risk-pill risk-healthy">Sessão protegida</span>
         <span>Dados carregados via Supabase RLS</span>
       </div>
     </aside>

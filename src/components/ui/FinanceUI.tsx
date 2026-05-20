@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { AlertTriangle, Gauge, type LucideIcon } from "lucide-react";
+import { riskLabel, statusLabel } from "../../lib/formatters";
 
 export function IconBadge({ icon: Icon, tone = "neutral" }: { icon: LucideIcon; tone?: string }) {
   return (
@@ -10,35 +11,11 @@ export function IconBadge({ icon: Icon, tone = "neutral" }: { icon: LucideIcon; 
 }
 
 export function RiskPill({ level, label }: { level: string; label?: string }) {
-  const labels: Record<string, string> = {
-    excellent: "Excelente",
-    healthy: "Saudavel",
-    attention: "Atencao",
-    risk: "Risco",
-    critical: "Critico",
-    emergency: "Emergencia",
-    urgent: "Urgente",
-    high: "Alta",
-    medium: "Media",
-    low: "Baixa",
-  };
-
-  return <span className={clsx("risk-pill", `risk-${level}`)}>{label ?? labels[level] ?? level}</span>;
+  return <span className={clsx("risk-pill", `risk-${level}`)}>{label ?? riskLabel(level)}</span>;
 }
 
 export function StatusPill({ status }: { status: string }) {
-  const labels: Record<string, string> = {
-    open: "Aberta",
-    closed: "Fechada",
-    paid: "Paga",
-    overdue: "Atrasada",
-    scheduled: "Agendada",
-    planned: "Planejada",
-    running: "Em andamento",
-    done: "Concluida",
-  };
-
-  return <span className={clsx("risk-pill", `status-${status}`)}>{labels[status] ?? status}</span>;
+  return <span className={clsx("risk-pill", `status-${status}`)}>{statusLabel(status)}</span>;
 }
 
 export function Panel({
@@ -96,7 +73,7 @@ export function LoadingState({ label = "Carregando dados financeiros" }: { label
     <div className="state-card">
       <div className="state-spinner" />
       <strong>{label}</strong>
-      <span>Sincronizando dados do usuario logado.</span>
+      <span>Sincronizando dados do usuário logado.</span>
     </div>
   );
 }
