@@ -8,6 +8,7 @@ import type {
   FinancialProfile,
   FinancialSummary,
   Installment,
+  Invoice,
   MonthlyCommitment,
   RiskLevel,
   Transaction,
@@ -38,8 +39,7 @@ function riskFromScore(score: number): RiskLevel {
   if (score >= 70) return "healthy";
   if (score >= 55) return "attention";
   if (score >= 40) return "risk";
-  if (score >= 25) return "critical";
-  return "emergency";
+  return "critical";
 }
 
 function statusFromRisk(level: RiskLevel) {
@@ -110,6 +110,7 @@ export function buildFinancialSummary(
   debts: Debt[],
   installments: Installment[] = [],
   competence = transactions[0]?.competence ?? currentCompetence(),
+  invoices: Invoice[] = [],
 ): FinancialSummary {
   const incomeTransactions = transactions.filter((item) => item.type === "income");
   const confirmedIncome = sum(incomeTransactions.filter((item) => item.status === "paid").map((item) => item.amount));
@@ -125,18 +126,52 @@ export function buildFinancialSummary(
   );
   const paidDirectExpenses = sum(directExpenses.filter((item) => item.status === "paid").map((item) => item.amount));
   const pendingDirectExpenses = sum(directExpenses.filter((item) => item.status !== "paid").map((item) => item.amount));
-  const cardInvoices = sum(cards.map((card) => card.currentInvoice));
-  const currentLoanInstallments = sum(
-    installments
-      .filter((installment) => installment.competence === competence && isLoanInstallment(installment))
+  const cardsWithInvoiceRows = new Set(invoices.map((invoice) => invoice.cardId));
+  const fallbackCardInvoices = sum(
+    cards
+      .filter((card) => !cardsWithInvoiceRows.has(card.id))
+      .map((card) => card.currentInvoice),
+  );
+  const paidCardInvoices = sum(
+    invoices
+      .filter((invoice) => invoice.competence === competence && invoice.status === "paid")
+      .map((invoice) => invoice.totalAmount),
+  );
+  const openCardInvoices = fallbackCardInvoices + sum(
+    invoices
+      .filter((invoice) => invoice.competence === competence && invoice.status !== "paid")
+      .map((invoice) => invoice.totalAmount),
+  );
+  const cardInvoices = paidCardInvoices + openCardInvoices;
+  const currentLoanInstallmentsRows = installments.filter(
+    (installment) => installment.competence === competence && isLoanInstallment(installment),
+  );
+  const currentLoanInstallments = sum(currentLoanInstallmentsRows.map((installment) => installment.amount));
+  const pendingLoanInstallments = sum(
+    currentLoanInstallmentsRows
+      .filter((installment) => installment.status !== "paid")
       .map((installment) => installment.amount),
   );
-  const debtPayments = sum(debts.map((debt) => debt.monthlyPayment)) + currentLoanInstallments;
+  const paidLoanInstallments = sum(
+    currentLoanInstallmentsRows
+      .filter((installment) => installment.status === "paid")
+      .map((installment) => installment.amount),
+  );
+  const debtMonthlyPayments = sum(debts.map((debt) => debt.monthlyPayment));
+  const debtPayments = debtMonthlyPayments + currentLoanInstallments;
   const totalOutflow = directFixedExpenses + directVariableExpenses + cardInvoices + debtPayments;
   const projectedBalance = income - totalOutflow;
-  const realizedBalance = confirmedIncome - paidDirectExpenses;
-  const immediateObligations = pendingDirectExpenses + cardInvoices + debtPayments;
-  const cashShortfall = Math.max(immediateObligations - confirmedIncome, 0);
+  const realizedBalance = confirmedIncome - paidDirectExpenses - paidCardInvoices - paidLoanInstallments;
+  const monthlyOpenObligations = pendingDirectExpenses + openCardInvoices + debtMonthlyPayments + pendingLoanInstallments;
+  const immediateObligations = monthlyOpenObligations;
+  const cashShortfall = Math.max(monthlyOpenObligations - confirmedIncome, 0);
+  const futureCommitments = buildFutureCommitments(income, directFixedExpenses, cards, debts, installments, competence);
+  const futureCommitmentRows = futureCommitments.slice(1);
+  const nextMonthCommitment = futureCommitmentRows[0]?.total ?? 0;
+  const futureCommitmentsTotal = sum(futureCommitmentRows.map((month) => month.total));
+  const futureInstallmentsTotal = sum(
+    futureCommitmentRows.map((month) => month.cardInstallments + month.loanInstallments),
+  );
   const pendingIncomeRatio = income > 0 ? pendingIncome / income : 0;
   const pendingExpenseRatio = totalOutflow > 0 ? pendingDirectExpenses / totalOutflow : 0;
   const committedIncomeRatio = income > 0 ? totalOutflow / income : 0;
@@ -174,11 +209,17 @@ export function buildFinancialSummary(
     paidDirectExpenses,
     pendingDirectExpenses,
     cardInvoices,
+    openCardInvoices,
+    paidCardInvoices,
     debtPayments,
     totalOutflow,
     projectedBalance,
     realizedBalance,
     immediateObligations,
+    monthlyOpenObligations,
+    nextMonthCommitment,
+    futureCommitmentsTotal,
+    futureInstallmentsTotal,
     cashShortfall,
     pendingIncomeRatio,
     pendingExpenseRatio,
@@ -194,7 +235,7 @@ export function buildFinancialSummary(
     riskLevel,
     financialStatus: statusFromRisk(riskLevel),
     adaptiveBudget: adaptiveBudgetFor(healthScore),
-    futureCommitments: buildFutureCommitments(income, directFixedExpenses, cards, debts, installments, competence),
+    futureCommitments,
   };
 }
 
@@ -206,7 +247,7 @@ export function buildDiagnostics(summary: FinancialSummary, cards: Card[], debts
       id: "diag-income",
       title: "Renda comprometida acima do limite seguro",
       description:
-        "O fluxo mensal está operando em zona de pressão. A prioridade é reduzir faturas e bloquear novas parcelas antes de buscar investimentos.",
+        "A competência selecionada está operando em zona de pressão. A prioridade é reduzir faturas do mês, contas abertas e novas parcelas antes de buscar investimentos.",
       severity: summary.committedIncomeRatio > 0.9 ? "critical" : "risk",
       metric: "Comprometimento",
     });
@@ -215,9 +256,9 @@ export function buildDiagnostics(summary: FinancialSummary, cards: Card[], debts
   if (summary.cardIncomeRatio > 0.3) {
     findings.push({
       id: "diag-card",
-      title: "Cartões pesando mais que 30% da renda",
+      title: "Faturas do mês pesando mais que 30% da renda",
       description:
-        "As faturas já consomem uma parcela relevante do caixa. O cartão mais sensível deve receber teto semanal e revisão de compras recorrentes.",
+        "As faturas da competência consomem uma parcela relevante do caixa. O cartão mais sensível deve receber teto semanal e revisão de compras recorrentes.",
       severity: summary.cardIncomeRatio > 0.55 ? "critical" : "risk",
       metric: "Cartões",
     });
@@ -228,7 +269,7 @@ export function buildDiagnostics(summary: FinancialSummary, cards: Card[], debts
       id: "diag-balance",
       title: "Saldo mensal projetado negativo",
       description:
-        "Mesmo sem novos gastos, o mês tende a fechar no vermelho. A decisão correta é atacar vazamentos de caixa em até 7 dias.",
+        "Mesmo sem novos gastos na competência selecionada, o mês tende a fechar no vermelho. A decisão correta é atacar vazamentos de caixa em até 7 dias.",
       severity: "critical",
       metric: "Fluxo",
     });
@@ -245,12 +286,12 @@ export function buildDiagnostics(summary: FinancialSummary, cards: Card[], debts
     });
   }
 
-  if (summary.pendingDirectExpenses > 0 && summary.cashShortfall > 0) {
+  if (summary.monthlyOpenObligations > 0 && summary.cashShortfall > 0) {
     findings.push({
       id: "diag-payables",
       title: "Obrigações pendentes acima do caixa confirmado",
       description:
-        `Há ${summary.cashShortfall.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2, maximumFractionDigits: 2 })} sem cobertura por receita já recebida. Priorize vencimentos, juros e serviços essenciais antes de novos compromissos.`,
+        `Há ${summary.cashShortfall.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2, maximumFractionDigits: 2 })} em aberto no mês sem cobertura por receita já recebida. Priorize vencimentos, juros e serviços essenciais antes de novos compromissos.`,
       severity: summary.cashShortfall > summary.income * 0.25 ? "critical" : "risk",
       metric: "Contas a pagar",
     });
@@ -312,7 +353,7 @@ export function buildAlerts(summary: FinancialSummary, cards: Card[]): AlertItem
     alerts.push({
       id: "alert-confirmed-cash",
       title: "Caixa confirmado insuficiente",
-      message: "As contas pendentes, faturas e dívidas superam o dinheiro já recebido no mês.",
+      message: "As obrigações em aberto da competência superam o dinheiro já recebido no mês.",
       level: summary.cashShortfall > summary.income * 0.25 ? "critical" : "risk",
       source: "cashflow",
     });
@@ -391,7 +432,7 @@ export function buildRuleBasedActions(summary: FinancialSummary): ActionItem[] {
     actions.push({
       id: "rule-cash-coverage",
       title: "Montar ordem de pagamento por prioridade",
-      reason: "As obrigações pendentes superam o caixa confirmado. Pague primeiro essenciais e juros altos, renegocie o restante e evite novas compras.",
+      reason: "As obrigações abertas do mês superam o caixa confirmado. Pague primeiro essenciais e juros altos, renegocie o restante e evite novas compras.",
       priority: "urgent",
       horizon: "7 dias",
       expectedSavings: Math.round(summary.cashShortfall),

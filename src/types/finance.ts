@@ -226,11 +226,17 @@ export interface FinancialSummary {
   paidDirectExpenses: number;
   pendingDirectExpenses: number;
   cardInvoices: number;
+  openCardInvoices: number;
+  paidCardInvoices: number;
   debtPayments: number;
   totalOutflow: number;
   projectedBalance: number;
   realizedBalance: number;
   immediateObligations: number;
+  monthlyOpenObligations: number;
+  nextMonthCommitment: number;
+  futureCommitmentsTotal: number;
+  futureInstallmentsTotal: number;
   cashShortfall: number;
   pendingIncomeRatio: number;
   pendingExpenseRatio: number;

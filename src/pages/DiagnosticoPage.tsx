@@ -38,8 +38,8 @@ export function DiagnosticoPage({ workspace, summary }: WorkspacePageProps) {
             <RiskPill level={summary.riskLevel} />
             <h3>{summary.financialStatus}</h3>
             <p>
-              Diagnóstico gerencial calculado com caixa recebido, receitas a receber, despesas pendentes,
-              faturas, dívidas e parcelas futuras. A recomendação prioriza liquidez antes de crescimento.
+              Diagnóstico gerencial do mês selecionado, com leitura separada de caixa recebido, contas abertas,
+              faturas e dívidas. A exposição futura aparece como tendência, sem inflar os cards mensais.
             </p>
             <div className="rule-row">
               <span>A receber</span>
@@ -48,6 +48,10 @@ export function DiagnosticoPage({ workspace, summary }: WorkspacePageProps) {
             <div className="rule-row">
               <span>Pendências sobre saídas</span>
               <strong>{formatPercent(summary.pendingExpenseRatio)}</strong>
+            </div>
+            <div className="rule-row">
+              <span>Próximos 5 meses</span>
+              <strong>{formatMoney(summary.futureCommitmentsTotal)}</strong>
             </div>
           </div>
         </Panel>

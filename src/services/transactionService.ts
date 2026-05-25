@@ -10,6 +10,7 @@ function projectRecurringTransaction(transaction: Transaction, competence: strin
     ...transaction,
     date: sameDayInCompetence(transaction.date, competence),
     competence,
+    status: transaction.status === "paid" ? "scheduled" : transaction.status,
     sourceDate: transaction.sourceDate ?? transaction.date,
     sourceCompetence: transaction.sourceCompetence ?? transaction.competence,
     projectedFromRecurring: true,
@@ -18,6 +19,17 @@ function projectRecurringTransaction(transaction: Transaction, competence: strin
 
 function sortTransactionsByDateDesc(a: Transaction, b: Transaction) {
   return b.date.localeCompare(a.date) || a.description.localeCompare(b.description);
+}
+
+function transactionSignature(transaction: Transaction) {
+  return [
+    transaction.type,
+    transaction.description.trim().toLowerCase(),
+    transaction.category.trim().toLowerCase(),
+    transaction.subcategory.trim().toLowerCase(),
+    transaction.paymentRail,
+    transaction.amount.toFixed(2),
+  ].join("|");
 }
 
 export const transactionService = {
@@ -41,13 +53,14 @@ export const transactionService = {
     if (currentError) throw currentError;
     if (recurringError) throw recurringError;
 
-    const transactionsById = new Map<string, Transaction>();
-    [...(recurringRows ?? []), ...(currentRows ?? [])]
+    const currentTransactions = (currentRows ?? []).map(mapTransaction);
+    const currentSignatures = new Set(currentTransactions.map(transactionSignature));
+    const projectedRecurringTransactions = (recurringRows ?? [])
       .map(mapTransaction)
       .map((transaction) => projectRecurringTransaction(transaction, competence))
-      .forEach((transaction) => transactionsById.set(transaction.id, transaction));
+      .filter((transaction) => !currentSignatures.has(transactionSignature(transaction)));
 
-    return [...transactionsById.values()].sort(sortTransactionsByDateDesc);
+    return [...projectedRecurringTransactions, ...currentTransactions].sort(sortTransactionsByDateDesc);
   },
 
   async listRange(userId: string, fromCompetence: string, toCompetence: string) {

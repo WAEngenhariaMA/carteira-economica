@@ -83,6 +83,7 @@ export function useFinancialWorkspace(userId: string | undefined, competence: st
           currentDebts,
           currentInstallments,
           competence,
+          currentInvoices,
         );
         const fallbackActions = currentActions.length > 0 ? currentActions : buildRuleBasedActions(summary);
 
@@ -130,6 +131,7 @@ export function useFinancialWorkspace(userId: string | undefined, competence: st
       state.data.debts,
       state.data.installments,
       competence,
+      state.data.invoices,
     );
   }, [competence, state.data]);
 
