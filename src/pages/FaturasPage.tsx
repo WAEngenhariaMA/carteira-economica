@@ -1,25 +1,35 @@
 import { useEffect, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
-import { Panel, StatusPill } from "../components/ui/FinanceUI";
+import { EmptyState, Panel, StatusPill } from "../components/ui/FinanceUI";
+import { invoiceBelongsToCompetence } from "../lib/financeEngine";
 import { formatMoney, formatNumberInput, normalizeMoneyInput } from "../lib/formatters";
 import { invoiceService } from "../services/invoiceService";
 import type { WorkspacePageProps } from "../app/routes";
 import type { Invoice } from "../types/finance";
 
+function dueDateForCard(cards: WorkspacePageProps["workspace"]["cards"], cardId: string, competence: string) {
+  const card = cards.find((item) => item.id === cardId);
+  const [year, month] = competence.split("-").map(Number);
+  const lastDay = new Date(year, month, 0).getDate();
+  const dueDay = Math.min(Math.max(card?.dueDay ?? 10, 1), lastDay);
+
+  return `${competence}-${String(dueDay).padStart(2, "0")}`;
+}
+
 export function FaturasPage({ userId, competence, workspace, refresh }: WorkspacePageProps) {
   const [editing, setEditing] = useState<Invoice | null>(null);
   const defaultCardId = workspace.cards[0]?.id ?? "";
-  const invoices = workspace.invoices.filter((invoice) => invoice.competence === competence);
-  const [form, setForm] = useState({ cardId: defaultCardId, totalAmount: "", dueDate: `${competence}-10`, status: "open" });
+  const invoices = workspace.invoices.filter((invoice) => invoiceBelongsToCompetence(invoice, competence));
+  const [form, setForm] = useState({ cardId: defaultCardId, totalAmount: "", dueDate: dueDateForCard(workspace.cards, defaultCardId, competence), status: "open" });
 
   useEffect(() => {
     if (editing) return;
     setForm((current) => ({
       ...current,
       cardId: current.cardId || defaultCardId,
-      dueDate: `${competence}-10`,
+      dueDate: dueDateForCard(workspace.cards, current.cardId || defaultCardId, competence),
     }));
-  }, [competence, defaultCardId, editing]);
+  }, [competence, defaultCardId, editing, workspace.cards]);
 
   function startEdit(invoice: Invoice) {
     setEditing(invoice);
@@ -33,7 +43,7 @@ export function FaturasPage({ userId, competence, workspace, refresh }: Workspac
 
   function resetForm() {
     setEditing(null);
-    setForm({ cardId: defaultCardId, totalAmount: "", dueDate: `${competence}-10`, status: "open" });
+    setForm({ cardId: defaultCardId, totalAmount: "", dueDate: dueDateForCard(workspace.cards, defaultCardId, competence), status: "open" });
   }
 
   return (
@@ -46,7 +56,7 @@ export function FaturasPage({ userId, competence, workspace, refresh }: Workspac
             await invoiceService.upsert(userId, {
               id: editing?.id,
               cardId: form.cardId,
-              competence,
+              competence: form.dueDate.slice(0, 7) || competence,
               dueDate: form.dueDate,
               totalAmount: Number(form.totalAmount),
               paidAmount: editing?.paidAmount ?? 0,
@@ -59,7 +69,11 @@ export function FaturasPage({ userId, competence, workspace, refresh }: Workspac
         >
           <label>
             Cartão
-            <select value={form.cardId} onChange={(event) => setForm({ ...form, cardId: event.target.value })} required>
+            <select
+              value={form.cardId}
+              onChange={(event) => setForm({ ...form, cardId: event.target.value, dueDate: dueDateForCard(workspace.cards, event.target.value, competence) })}
+              required
+            >
               {workspace.cards.map((card) => <option key={card.id} value={card.id}>{card.bank} - {card.name}</option>)}
             </select>
           </label>
@@ -98,13 +112,14 @@ export function FaturasPage({ userId, competence, workspace, refresh }: Workspac
           </div>
         </form>
       </Panel>
-      <Panel title="Faturas da Competência" className="table-panel">
+      <Panel title="Faturas com Vencimento na Competência" className="table-panel">
         <div className="data-table-wrap">
           <table className="data-table">
             <thead>
               <tr>
                 <th>Cartão</th>
-                <th>Competência</th>
+                <th>Competência financeira</th>
+                <th>Ciclo original</th>
                 <th>Vencimento</th>
                 <th>Status</th>
                 <th className="num">Valor</th>
@@ -112,11 +127,22 @@ export function FaturasPage({ userId, competence, workspace, refresh }: Workspac
               </tr>
             </thead>
             <tbody>
+              {invoices.length === 0 && (
+                <tr>
+                  <td colSpan={7}>
+                    <EmptyState
+                      title="Nenhuma fatura vence nesta competência"
+                      description="Faturas fechadas em um mês entram no fluxo financeiro pelo mês de vencimento, que é quando o dinheiro sai do caixa."
+                    />
+                  </td>
+                </tr>
+              )}
               {invoices.map((invoice) => {
                 const card = workspace.cards.find((item) => item.id === invoice.cardId);
                 return (
                   <tr key={invoice.id}>
                     <td>{card ? `${card.bank} - ${card.name}` : "Cartão removido"}</td>
+                    <td>{invoice.dueDate.slice(0, 7)}</td>
                     <td>{invoice.competence}</td>
                     <td>{invoice.dueDate}</td>
                     <td><StatusPill status={invoice.status} /></td>

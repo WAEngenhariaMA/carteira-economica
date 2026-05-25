@@ -1110,6 +1110,136 @@ button {
   padding: 16px;
 }
 
+.narrative-panel {
+  border-left: 4px solid var(--teal);
+}
+
+.narrative-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.narrative-lead {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 14px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.narrative-lead p {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.balance-ledger {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(140px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.balance-ledger span {
+  display: grid;
+  gap: 5px;
+  min-height: 64px;
+  padding: 10px 12px;
+  color: var(--muted);
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.balance-ledger strong {
+  color: var(--text);
+  font-size: 15px;
+  text-transform: none;
+}
+
+.balance-ledger .negative strong {
+  color: var(--red);
+}
+
+.balance-ledger .positive strong {
+  color: var(--green);
+}
+
+.narrative-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.narrative-grid.compact {
+  margin-top: 12px;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+}
+
+.narrative-grid.one-column {
+  grid-template-columns: 1fr;
+}
+
+.narrative-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  min-height: 86px;
+  padding: 13px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.narrative-card > strong,
+.narrative-card > span,
+.narrative-card div strong,
+.narrative-card div span,
+.narrative-card div b,
+.narrative-card > b {
+  display: block;
+}
+
+.narrative-card > strong,
+.narrative-card div strong {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.narrative-card > strong:first-child,
+.narrative-card > strong:first-child + span,
+.narrative-card > strong:first-child + span + b {
+  grid-column: 1 / -1;
+}
+
+.narrative-card > span,
+.narrative-card div span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.narrative-card > b,
+.narrative-card div b {
+  margin-top: 8px;
+  color: var(--teal);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.horizon-card {
+  min-height: 0;
+}
+
 .sim-controls {
   display: grid;
   gap: 20px;
@@ -1529,12 +1659,15 @@ button {
 
   .kpi-grid,
   .kpi-grid.compact,
+  .balance-ledger,
+  .narrative-grid.compact,
   .scenario-grid,
   .installment-form {
     grid-template-columns: 1fr;
   }
 
   .score-layout,
+  .narrative-lead,
   .credit-row,
   .timeline-row,
   .upload-zone,

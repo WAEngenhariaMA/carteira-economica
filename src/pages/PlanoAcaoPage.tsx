@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { ActionForm } from "../components/forms/ActionForm";
 import { Panel, RiskPill, StatusPill } from "../components/ui/FinanceUI";
-import { buildRuleBasedActions } from "../lib/financeEngine";
+import { buildAlerts, buildDiagnostics, buildRuleBasedActions } from "../lib/financeEngine";
+import { buildFinancialExplanation } from "../lib/financialExplainer";
 import { difficultyLabel, formatMoney } from "../lib/formatters";
 import { actionPlanService } from "../services/actionPlanService";
 import type { WorkspacePageProps } from "../app/routes";
@@ -12,9 +13,30 @@ export function PlanoAcaoPage({ userId, workspace, summary, refresh }: Workspace
   const [editing, setEditing] = useState<ActionItem | null>(null);
   const savedActionTitles = new Set(workspace.actions.map((action) => action.title));
   const suggestedActions = buildRuleBasedActions(summary).filter((action) => !savedActionTitles.has(action.title));
+  const diagnostics = buildDiagnostics(summary, workspace.cards, workspace.debts);
+  const alerts = buildAlerts(summary, workspace.cards);
+  const explanation = buildFinancialExplanation({
+    summary,
+    cards: workspace.cards,
+    debts: workspace.debts,
+    diagnostics,
+    actions: workspace.actions.length > 0 ? workspace.actions : suggestedActions,
+    alerts,
+  });
 
   return (
     <div className="screen-stack">
+      <Panel title="Roteiro Gerencial">
+        <div className="narrative-grid">
+          {explanation.horizonPlan.map((item) => (
+            <article className="narrative-card" key={item.horizon}>
+              <strong>{item.horizon}: {item.title}</strong>
+              <span>{item.description}</span>
+              <b>Impacto esperado: {formatMoney(item.expectedImpact)}</b>
+            </article>
+          ))}
+        </div>
+      </Panel>
       <Panel title={editing ? "Editar Ação Operacional" : "Cadastrar Ação Operacional"}>
         <ActionForm
           initialValue={editing}

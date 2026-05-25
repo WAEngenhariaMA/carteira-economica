@@ -41,6 +41,10 @@ export function transactionBelongsToCompetence(transaction: Transaction, compete
   return transaction.competence === competence && (!dateCompetence || dateCompetence === competence);
 }
 
+export function invoiceBelongsToCompetence(invoice: Invoice, competence: string) {
+  return (invoice.dueDate?.slice(0, 7) || invoice.competence) === competence;
+}
+
 function riskFromScore(score: number): RiskLevel {
   if (score >= 85) return "excellent";
   if (score >= 70) return "healthy";
@@ -147,12 +151,12 @@ export function buildFinancialSummary(
   );
   const paidCardInvoices = sum(
     invoices
-      .filter((invoice) => invoice.competence === competence && invoice.status === "paid")
+      .filter((invoice) => invoiceBelongsToCompetence(invoice, competence) && invoice.status === "paid")
       .map((invoice) => invoice.totalAmount),
   );
   const openCardInvoices = fallbackCardInvoices + sum(
     invoices
-      .filter((invoice) => invoice.competence === competence && invoice.status !== "paid")
+      .filter((invoice) => invoiceBelongsToCompetence(invoice, competence) && invoice.status !== "paid")
       .map((invoice) => invoice.totalAmount),
   );
   const cardInvoices = paidCardInvoices + openCardInvoices;
@@ -177,7 +181,7 @@ export function buildFinancialSummary(
   const realizedBalance = confirmedIncome - paidDirectExpenses - paidCardInvoices - paidLoanInstallments;
   const monthlyOpenObligations = pendingDirectExpenses + openCardInvoices + debtMonthlyPayments + pendingLoanInstallments;
   const immediateObligations = monthlyOpenObligations;
-  const cashShortfall = Math.max(monthlyOpenObligations - confirmedIncome, 0);
+  const cashShortfall = Math.max(monthlyOpenObligations - Math.max(realizedBalance, 0), 0);
   const futureCommitments = buildFutureCommitments(income, directFixedExpenses, cards, debts, installments, competence);
   const futureCommitmentRows = futureCommitments.slice(1);
   const nextMonthCommitment = futureCommitmentRows[0]?.total ?? 0;
@@ -186,7 +190,7 @@ export function buildFinancialSummary(
     futureCommitmentRows.map((month) => month.cardInstallments + month.loanInstallments),
   );
   const pendingIncomeRatio = income > 0 ? pendingIncome / income : 0;
-  const pendingExpenseRatio = totalOutflow > 0 ? pendingDirectExpenses / totalOutflow : 0;
+  const pendingExpenseRatio = totalOutflow > 0 ? monthlyOpenObligations / totalOutflow : 0;
   const committedIncomeRatio = income > 0 ? totalOutflow / income : 0;
   const cardIncomeRatio = income > 0 ? cardInvoices / income : 0;
   const debtRatio = income > 0 ? (debtPayments + cardInvoices) / income : 0;
@@ -243,7 +247,7 @@ export function buildFinancialSummary(
     potentialSavings,
     dailyAverageSpend: totalOutflow / 30,
     weeklyAverageSpend: totalOutflow / 4.345,
-    freeUntilMonthEnd: projectedBalance - 950,
+    freeUntilMonthEnd: projectedBalance,
     healthScore,
     riskLevel,
     financialStatus: statusFromRisk(riskLevel),

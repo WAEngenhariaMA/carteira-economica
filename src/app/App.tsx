@@ -17,6 +17,7 @@ import { AppShell } from "./AppShell";
 import { currentCompetence } from "../services/dateService";
 import { useFinancialWorkspace } from "../hooks/useFinancialWorkspace";
 import { buildAlerts, buildDiagnostics } from "../lib/financeEngine";
+import { buildFinancialExplanation } from "../lib/financialExplainer";
 import { reportService } from "../services/reportService";
 import type { ScreenId } from "../types/finance";
 import { AuthPage } from "../pages/AuthPage";
@@ -79,6 +80,14 @@ function ProtectedApp() {
   const handleReport = async () => {
     const diagnostics = buildDiagnostics(pageProps.summary, pageProps.workspace.cards, pageProps.workspace.debts);
     const alerts = buildAlerts(pageProps.summary, pageProps.workspace.cards);
+    const explanation = buildFinancialExplanation({
+      summary: pageProps.summary,
+      cards: pageProps.workspace.cards,
+      debts: pageProps.workspace.debts,
+      diagnostics,
+      actions: pageProps.workspace.actions,
+      alerts,
+    });
     const { generateExecutivePdf } = await import("../lib/report");
 
     generateExecutivePdf({
@@ -88,6 +97,7 @@ function ProtectedApp() {
       alerts,
       actions: pageProps.workspace.actions,
       cards: pageProps.workspace.cards,
+      explanation,
     });
 
     await reportService.register(pageProps.userId, competence, {

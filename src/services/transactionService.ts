@@ -33,6 +33,21 @@ function transactionSignature(transaction: Transaction) {
   ].join("|");
 }
 
+function keepLatestRecurringSource(transactions: Transaction[]) {
+  const latestBySignature = new Map<string, Transaction>();
+
+  transactions.forEach((transaction) => {
+    const signature = transactionSignature(transaction);
+    const current = latestBySignature.get(signature);
+
+    if (!current || transaction.competence > current.competence || transaction.date > current.date) {
+      latestBySignature.set(signature, transaction);
+    }
+  });
+
+  return Array.from(latestBySignature.values());
+}
+
 export const transactionService = {
   async listByCompetence(userId: string, competence: string) {
     const client = getSupabase();
@@ -61,12 +76,13 @@ export const transactionService = {
       .map(mapTransaction)
       .filter((transaction) => transactionBelongsToCompetence(transaction, competence));
     const currentSignatures = new Set(currentTransactions.map(transactionSignature));
-    const projectedRecurringTransactions = (recurringRows ?? [])
+    const recurringSourceTransactions = (recurringRows ?? [])
       .map(mapTransaction)
       .filter((transaction) => {
         const sourceDateCompetence = transaction.date?.slice(0, 7);
         return !sourceDateCompetence || sourceDateCompetence <= competence;
-      })
+      });
+    const projectedRecurringTransactions = keepLatestRecurringSource(recurringSourceTransactions)
       .map((transaction) => projectRecurringTransaction(transaction, competence))
       .filter((transaction) => !currentSignatures.has(transactionSignature(transaction)));
 

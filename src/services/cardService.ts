@@ -1,12 +1,18 @@
 import { getSupabase } from "../lib/supabase";
 import type { Card } from "../types/finance";
 import { mapCard, cardToRow } from "./mappers";
-import { nextCompetences, previousCompetence } from "./dateService";
+import { nextCompetences, previousCompetence, shiftCompetence } from "./dateService";
+
+function invoiceDueCompetence(invoice: { due_date?: string | null; competence?: string | null }) {
+  return invoice.due_date?.slice(0, 7) || invoice.competence || "";
+}
 
 export const cardService = {
   async listWithMetrics(userId: string, competence: string) {
     const futureMonths = nextCompetences(competence, 6);
     const metricMonths = [previousCompetence(competence), ...futureMonths];
+    const previousMonth = previousCompetence(competence);
+    const nextCompetence = shiftCompetence(competence, 1);
     const { data: cardRows, error: cardError } = await getSupabase()
       .from("cards")
       .select("*")
@@ -26,7 +32,8 @@ export const cardService = {
           .select("*")
           .eq("user_id", userId)
           .in("card_id", cardIds)
-          .in("competence", [competence, previousCompetence(competence)]),
+          .gte("due_date", `${previousMonth}-01`)
+          .lt("due_date", `${nextCompetence}-01`),
         getSupabase()
           .from("installments")
           .select("*")
@@ -40,13 +47,13 @@ export const cardService = {
 
     return (cardRows ?? []).map((cardRow) => {
       const currentInvoice = (invoices ?? []).find(
-        (invoice) => invoice.card_id === cardRow.id && invoice.competence === competence,
+        (invoice) => invoice.card_id === cardRow.id && invoiceDueCompetence(invoice) === competence,
       );
       const previousInvoice = (invoices ?? []).find(
-        (invoice) => invoice.card_id === cardRow.id && invoice.competence === previousCompetence(competence),
+        (invoice) => invoice.card_id === cardRow.id && invoiceDueCompetence(invoice) === previousMonth,
       );
       const previousInstallments = (installments ?? [])
-        .filter((installment) => installment.card_id === cardRow.id && installment.competence === previousCompetence(competence))
+        .filter((installment) => installment.card_id === cardRow.id && installment.competence === previousMonth)
         .reduce((total, installment) => total + Number(installment.amount ?? 0), 0);
       const futureInstallments = futureMonths.map((month) =>
         (installments ?? [])

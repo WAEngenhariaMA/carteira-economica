@@ -8,6 +8,7 @@ import type {
   FinancialProfile,
   FinancialSummary,
 } from "../types/finance";
+import type { FinancialExplanation } from "./financialExplainer";
 import { formatMoney, formatPercent, riskLabel } from "./formatters";
 
 interface ReportInput {
@@ -17,6 +18,7 @@ interface ReportInput {
   alerts: AlertItem[];
   actions: ActionItem[];
   cards: Card[];
+  explanation: FinancialExplanation;
 }
 
 export function generateExecutivePdf({
@@ -26,6 +28,7 @@ export function generateExecutivePdf({
   alerts,
   actions,
   cards,
+  explanation,
 }: ReportInput) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -53,9 +56,11 @@ export function generateExecutivePdf({
     14,
     74,
   );
+  doc.setFontSize(9);
+  doc.text(doc.splitTextToSize(explanation.simpleMonthSummary, pageWidth - 28), 14, 83);
 
   autoTable(doc, {
-    startY: 84,
+    startY: 102,
     head: [["Indicador", "Valor", "Interpretação"]],
     body: [
       ["Renda do mês", formatMoney(summary.expectedIncome), "Recebida + pendente na competência"],
@@ -72,6 +77,19 @@ export function generateExecutivePdf({
       ["Regra adaptativa", summary.adaptiveBudget.label, "Modelo recomendado para o momento"],
     ],
     styles: { fontSize: 9 },
+    headStyles: { fillColor: [15, 118, 110] },
+  });
+
+  autoTable(doc, {
+    head: [["Leitura consultiva", "Explicação"]],
+    body: [
+      ["Nota financeira", explanation.scoreExplanation],
+      ["Comprometimento", explanation.commitmentExplanation],
+      ["Saldo do mês", explanation.balanceExplanation],
+      ["Cartões", explanation.cardsExplanation],
+      ["Parcelas futuras", explanation.installmentsExplanation],
+    ],
+    styles: { fontSize: 8.5 },
     headStyles: { fillColor: [15, 118, 110] },
   });
 
@@ -97,12 +115,20 @@ export function generateExecutivePdf({
 
   autoTable(doc, {
     head: [["Plano de ação", "Prazo", "Prioridade", "Economia estimada"]],
-    body: actions.map((item) => [
+    body: [
+      ...explanation.horizonPlan.map((item) => [
+        item.title,
+        item.horizon,
+        "Sugerida",
+        formatMoney(item.expectedImpact),
+      ]),
+      ...actions.map((item) => [
       item.title,
       item.horizon,
       riskLabel(item.priority),
       formatMoney(item.expectedSavings),
-    ]),
+      ]),
+    ],
     styles: { fontSize: 8.5 },
     headStyles: { fillColor: [15, 118, 110] },
   });
