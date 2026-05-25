@@ -76,7 +76,14 @@ export function useFinancialWorkspace(userId: string | undefined, competence: st
           actionPlanService.list(currentUserId),
         ]);
 
-        const summary = buildFinancialSummary(currentProfile, currentTransactions, currentCards, currentDebts);
+        const summary = buildFinancialSummary(
+          currentProfile,
+          currentTransactions,
+          currentCards,
+          currentDebts,
+          currentInstallments,
+          competence,
+        );
         const fallbackActions = currentActions.length > 0 ? currentActions : buildRuleBasedActions(summary);
 
         if (!cancelled) {
@@ -121,8 +128,10 @@ export function useFinancialWorkspace(userId: string | undefined, competence: st
       state.data.transactions,
       state.data.cards,
       state.data.debts,
+      state.data.installments,
+      competence,
     );
-  }, [state.data]);
+  }, [competence, state.data]);
 
   return {
     ...state,

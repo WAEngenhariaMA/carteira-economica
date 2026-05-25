@@ -4,6 +4,7 @@ export type PaymentRail = "bank" | "card" | "cash" | "loan";
 export type RiskLevel = "excellent" | "healthy" | "attention" | "risk" | "critical" | "emergency";
 export type ActionStatus = "planned" | "running" | "done";
 export type ActionPriority = "urgent" | "high" | "medium" | "low";
+export type InstallmentSource = "card" | "loan";
 export type ScreenId =
   | "dashboard"
   | "receitas"
@@ -86,6 +87,8 @@ export interface Installment {
   id: string;
   transactionId?: string;
   cardId?: string;
+  source: InstallmentSource;
+  creditor?: string;
   description?: string;
   category?: string;
   purchaseDate?: string;
@@ -99,7 +102,9 @@ export interface Installment {
 }
 
 export interface InstallmentPurchaseInput {
-  cardId: string;
+  source: InstallmentSource;
+  cardId?: string;
+  creditor?: string;
   description: string;
   category: string;
   purchaseDate: string;
@@ -199,6 +204,7 @@ export interface MonthlyCommitment {
   cardInstallments: number;
   fixedExpenses: number;
   debts: number;
+  loanInstallments: number;
   total: number;
   projectedBalance: number;
 }

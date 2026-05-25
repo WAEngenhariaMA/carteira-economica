@@ -142,10 +142,14 @@ export function invoiceToRow(invoice: Omit<Invoice, "id"> | Partial<Invoice>) {
 }
 
 export function mapInstallment(row: any): Installment {
+  const source = row.installment_source ?? (row.card_id ? "card" : "loan");
+
   return {
     id: row.id,
     transactionId: row.transaction_id ?? undefined,
     cardId: row.card_id ?? undefined,
+    source,
+    creditor: row.creditor ?? undefined,
     description: row.description ?? undefined,
     category: row.category ?? undefined,
     purchaseDate: row.purchase_date ?? undefined,
@@ -163,6 +167,8 @@ export function installmentToRow(installment: Omit<Installment, "id"> | Partial<
   return withoutUndefined({
     transaction_id: "transactionId" in installment ? installment.transactionId ?? null : undefined,
     card_id: "cardId" in installment ? installment.cardId ?? null : undefined,
+    installment_source: installment.source,
+    creditor: installment.creditor,
     description: installment.description,
     category: installment.category,
     purchase_date: installment.purchaseDate,

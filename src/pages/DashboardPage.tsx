@@ -116,7 +116,8 @@ export function DashboardPage(props: WorkspacePageProps) {
   const installmentChart = {
     labels: summary.futureCommitments.map((item) => item.month),
     datasets: [
-      { label: "Parcelas", data: summary.futureCommitments.map((item) => item.cardInstallments), backgroundColor: "#0f766e", borderRadius: 6 },
+      { label: "Cartão", data: summary.futureCommitments.map((item) => item.cardInstallments), backgroundColor: "#0f766e", borderRadius: 6 },
+      { label: "Empréstimos", data: summary.futureCommitments.map((item) => item.loanInstallments), backgroundColor: "#2563eb", borderRadius: 6 },
       { label: "Dívidas", data: summary.futureCommitments.map((item) => item.debts), backgroundColor: "#b45309", borderRadius: 6 },
     ],
   };

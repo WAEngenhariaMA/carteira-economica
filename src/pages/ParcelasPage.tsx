@@ -13,9 +13,10 @@ export function ParcelasPage({ userId, competence, workspace, summary, refresh }
 
   return (
     <div className="screen-stack">
-      <Panel title="Cadastrar Compra Parcelada">
+      <Panel title="Cadastrar Parcelamento">
         <InstallmentPurchaseForm
           cards={workspace.cards}
+          debts={workspace.debts}
           competence={competence}
           onSubmit={async (purchase) => {
             await installmentService.createPurchase(userId, purchase);
@@ -28,6 +29,7 @@ export function ParcelasPage({ userId, competence, workspace, summary, refresh }
         <Panel title="Editar Parcela">
           <InstallmentEditForm
             cards={workspace.cards}
+            debts={workspace.debts}
             installment={editing}
             onCancel={() => setEditing(null)}
             onSubmit={async (installment) => {
@@ -55,6 +57,7 @@ export function ParcelasPage({ userId, competence, workspace, summary, refresh }
                 <div className="timeline-values">
                   <span>Cartão {formatMoney(item.cardInstallments)}</span>
                   <span>Fixos {formatMoney(item.fixedExpenses)}</span>
+                  <span>Empréstimos {formatMoney(item.loanInstallments)}</span>
                   <span>Dívidas {formatMoney(item.debts)}</span>
                   <strong>Saldo {formatMoney(item.projectedBalance)}</strong>
                 </div>
@@ -69,8 +72,8 @@ export function ParcelasPage({ userId, competence, workspace, summary, refresh }
           <table className="data-table installment-table">
             <thead>
               <tr>
-                <th>Compra</th>
-                <th>Cartão</th>
+                <th>Contrato / compra</th>
+                <th>Origem</th>
                 <th>Competência</th>
                 <th>Parcela</th>
                 <th>Status</th>
@@ -81,13 +84,18 @@ export function ParcelasPage({ userId, competence, workspace, summary, refresh }
             <tbody>
               {workspace.installments.map((installment) => {
                 const card = workspace.cards.find((item) => item.id === installment.cardId);
+                const isLoan = installment.source === "loan" || !installment.cardId;
                 return (
                   <tr key={installment.id}>
                     <td>
-                      <strong>{installment.description ?? "Compra parcelada"}</strong>
+                      <strong>{installment.description ?? (isLoan ? "Empréstimo parcelado" : "Compra parcelada")}</strong>
                       <span>{installment.category ?? "Sem categoria"}</span>
                     </td>
-                    <td>{card ? `${card.bank} - ${card.name}` : "Cartão removido"}</td>
+                    <td>
+                      {isLoan
+                        ? `Empréstimo${installment.creditor ? ` - ${installment.creditor}` : ""}`
+                        : card ? `${card.bank} - ${card.name}` : "Cartão removido"}
+                    </td>
                     <td>{installment.competence}</td>
                     <td>{installment.installmentNumber}/{installment.totalInstallments}</td>
                     <td><StatusPill status={installment.status} /></td>

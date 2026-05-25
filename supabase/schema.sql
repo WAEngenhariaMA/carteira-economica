@@ -87,6 +87,8 @@ create table if not exists public.installments (
   user_id uuid references auth.users(id) on delete cascade,
   transaction_id uuid references public.transactions(id) on delete cascade,
   card_id uuid references public.cards(id) on delete set null,
+  installment_source text not null default 'card' check (installment_source in ('card', 'loan')),
+  creditor text,
   description text,
   category text,
   purchase_date date,

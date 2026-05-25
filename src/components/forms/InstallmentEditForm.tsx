@@ -1,20 +1,24 @@
 import { useEffect, useState } from "react";
-import type { Card, Installment } from "../../types/finance";
+import type { Card, Debt, Installment, InstallmentSource } from "../../types/finance";
 
 export function InstallmentEditForm({
   cards,
+  debts,
   installment,
   onSubmit,
   onCancel,
 }: {
   cards: Card[];
+  debts: Debt[];
   installment: Installment;
   onSubmit: (installment: Partial<Installment>) => Promise<void>;
   onCancel: () => void;
 }) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
+    source: installment.source,
     cardId: installment.cardId ?? "",
+    creditor: installment.creditor ?? "",
     description: installment.description ?? "",
     category: installment.category ?? "",
     purchaseDate: installment.purchaseDate ?? "",
@@ -27,7 +31,9 @@ export function InstallmentEditForm({
 
   useEffect(() => {
     setForm({
+      source: installment.source,
       cardId: installment.cardId ?? "",
+      creditor: installment.creditor ?? "",
       description: installment.description ?? "",
       category: installment.category ?? "",
       purchaseDate: installment.purchaseDate ?? "",
@@ -45,7 +51,9 @@ export function InstallmentEditForm({
 
     try {
       await onSubmit({
-        cardId: form.cardId || undefined,
+        source: form.source as InstallmentSource,
+        cardId: form.source === "card" ? form.cardId || undefined : undefined,
+        creditor: form.source === "loan" ? form.creditor.trim() : undefined,
         description: form.description,
         category: form.category,
         purchaseDate: form.purchaseDate || undefined,
@@ -63,11 +71,28 @@ export function InstallmentEditForm({
   return (
     <form className="entry-form" onSubmit={handleSubmit}>
       <label>
-        Cartão
-        <select value={form.cardId} onChange={(event) => setForm({ ...form, cardId: event.target.value })} required>
-          {cards.map((card) => <option key={card.id} value={card.id}>{card.bank} - {card.name}</option>)}
+        Origem
+        <select value={form.source} onChange={(event) => setForm({ ...form, source: event.target.value as InstallmentSource })}>
+          <option value="card">Cartão</option>
+          <option value="loan">Empréstimo</option>
         </select>
       </label>
+      {form.source === "card" ? (
+        <label>
+          Cartão
+          <select value={form.cardId} onChange={(event) => setForm({ ...form, cardId: event.target.value })} required>
+            {cards.map((card) => <option key={card.id} value={card.id}>{card.bank} - {card.name}</option>)}
+          </select>
+        </label>
+      ) : (
+        <label>
+          Credor / instituição
+          <input value={form.creditor} list="edit-debt-creditors" onChange={(event) => setForm({ ...form, creditor: event.target.value })} required />
+          <datalist id="edit-debt-creditors">
+            {debts.map((debt) => <option key={debt.id} value={debt.creditor} />)}
+          </datalist>
+        </label>
+      )}
       <label>
         Descrição
         <input value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} required />
@@ -77,7 +102,7 @@ export function InstallmentEditForm({
         <input value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} />
       </label>
       <label>
-        Data da compra
+        Data da contratação
         <input value={form.purchaseDate} type="date" onChange={(event) => setForm({ ...form, purchaseDate: event.target.value })} />
       </label>
       <label>

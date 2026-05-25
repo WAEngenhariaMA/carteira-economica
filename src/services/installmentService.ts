@@ -7,6 +7,25 @@ function money(value: number) {
   return Number(value.toFixed(2));
 }
 
+function isMissingOptionalInstallmentColumn(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const message = Object.values(error as Record<string, unknown>).join(" ").toLowerCase();
+
+  return message.includes("installment_source") || message.includes("creditor");
+}
+
+function isUnsupportedLoanPaymentRail(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const message = Object.values(error as Record<string, unknown>).join(" ").toLowerCase();
+
+  return message.includes("loan") && (message.includes("payment_rail") || message.includes("enum"));
+}
+
+function withoutOptionalInstallmentColumns<T extends Record<string, unknown>>(row: T) {
+  const { installment_source: _source, creditor: _creditor, ...legacyRow } = row;
+  return legacyRow;
+}
+
 export const installmentService = {
   async listFuture(userId: string, competence: string, months = 24) {
     const monthKeys = nextCompetences(competence, months);
@@ -22,24 +41,52 @@ export const installmentService = {
   },
 
   async create(userId: string, installment: Omit<Installment, "id">) {
-    const { data, error } = await getSupabase()
+    const client = getSupabase();
+    const payload = { ...installmentToRow(installment), user_id: userId };
+    const { data, error } = await client
       .from("installments")
-      .insert({ ...installmentToRow(installment), user_id: userId })
+      .insert(payload)
       .select("*")
       .single();
+
+    if (error && isMissingOptionalInstallmentColumn(error)) {
+      const { data: fallbackData, error: fallbackError } = await client
+        .from("installments")
+        .insert(withoutOptionalInstallmentColumns(payload))
+        .select("*")
+        .single();
+
+      if (fallbackError) throw fallbackError;
+      return mapInstallment(fallbackData);
+    }
 
     if (error) throw error;
     return mapInstallment(data);
   },
 
   async update(userId: string, id: string, installment: Partial<Installment>) {
-    const { data, error } = await getSupabase()
+    const client = getSupabase();
+    const payload = installmentToRow(installment);
+    const { data, error } = await client
       .from("installments")
-      .update(installmentToRow(installment))
+      .update(payload)
       .eq("user_id", userId)
       .eq("id", id)
       .select("*")
       .single();
+
+    if (error && isMissingOptionalInstallmentColumn(error)) {
+      const { data: fallbackData, error: fallbackError } = await client
+        .from("installments")
+        .update(withoutOptionalInstallmentColumns(payload))
+        .eq("user_id", userId)
+        .eq("id", id)
+        .select("*")
+        .single();
+
+      if (fallbackError) throw fallbackError;
+      return mapInstallment(fallbackData);
+    }
 
     if (error) throw error;
     return mapInstallment(data);
@@ -49,8 +96,13 @@ export const installmentService = {
     const totalAmount = money(purchase.totalAmount);
     const downPayment = money(purchase.downPayment);
     const financedAmount = money(totalAmount - downPayment);
+    const source = purchase.source;
+    const creditor = purchase.creditor?.trim();
+    const category = purchase.category.trim() || (source === "loan" ? "Empréstimos" : "Compras parceladas");
 
     if (totalAmount <= 0) throw new Error("Informe um valor total maior que zero.");
+    if (source === "card" && !purchase.cardId) throw new Error("Selecione o cartão do parcelamento.");
+    if (source === "loan" && !creditor) throw new Error("Informe o credor ou instituição do empréstimo.");
     if (downPayment < 0) throw new Error("A entrada não pode ser negativa.");
     if (financedAmount <= 0) throw new Error("A entrada não pode ser maior ou igual ao valor total.");
     if (purchase.totalInstallments < 1) throw new Error("Informe pelo menos uma parcela.");
@@ -66,9 +118,11 @@ export const installmentService = {
 
       return {
         ...installmentToRow({
-          cardId: purchase.cardId,
+          cardId: source === "card" ? purchase.cardId : undefined,
+          source,
+          creditor: source === "loan" ? creditor : undefined,
           description: purchase.description,
-          category: purchase.category,
+          category,
           purchaseDate: purchase.purchaseDate,
           totalAmount,
           downPayment,
@@ -82,10 +136,20 @@ export const installmentService = {
       };
     });
 
-    const { data, error } = await client
+    let { data, error } = await client
       .from("installments")
       .insert(rows)
       .select("*");
+
+    if (error && isMissingOptionalInstallmentColumn(error)) {
+      const fallback = await client
+        .from("installments")
+        .insert(rows.map(withoutOptionalInstallmentColumns))
+        .select("*");
+
+      data = fallback.data;
+      error = fallback.error;
+    }
 
     if (error) throw error;
 
@@ -96,25 +160,41 @@ export const installmentService = {
         description: `${purchase.description} - entrada`,
         amount: downPayment,
         type: "expense",
-        category: purchase.category,
+        category,
         subcategory: "Entrada",
         essentiality: "important",
         recurring: false,
         fixed: false,
-        paymentRail: "card",
-        bank: "",
-        cardId: purchase.cardId,
+        paymentRail: source === "card" ? "card" : "loan",
+        bank: source === "loan" ? creditor ?? "" : "",
+        cardId: source === "card" ? purchase.cardId : undefined,
         status: "open",
         priority: "adjustable",
         impact: "medium",
-        notes: `Entrada de ${downPayment} em compra parcelada de ${totalAmount}.`,
+        notes: `Entrada de ${downPayment} em parcelamento de ${totalAmount}.`,
       };
 
-      const { data: transactionData, error: transactionError } = await client
+      let { data: transactionData, error: transactionError } = await client
         .from("transactions")
         .insert({ ...transactionToRow(downPaymentTransaction), user_id: userId })
         .select("id")
         .single();
+
+      if (transactionError && source === "loan" && isUnsupportedLoanPaymentRail(transactionError)) {
+        const fallbackTransaction: Omit<Transaction, "id"> = {
+          ...downPaymentTransaction,
+          paymentRail: "bank",
+          notes: `${downPaymentTransaction.notes} Origem real: empréstimo.`,
+        };
+        const fallback = await client
+          .from("transactions")
+          .insert({ ...transactionToRow(fallbackTransaction), user_id: userId })
+          .select("id")
+          .single();
+
+        transactionData = fallback.data;
+        transactionError = fallback.error;
+      }
 
       if (transactionError) throw transactionError;
       if (!transactionData?.id) throw new Error("Não foi possível registrar a entrada.");

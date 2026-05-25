@@ -7,12 +7,12 @@ import type {
   DiagnosticFinding,
   FinancialProfile,
   FinancialSummary,
+  Installment,
   MonthlyCommitment,
   RiskLevel,
   Transaction,
 } from "../types/finance";
-
-const monthLabels = ["Mai/26", "Jun/26", "Jul/26", "Ago/26", "Set/26", "Out/26"];
+import { currentCompetence, nextCompetences } from "../services/dateService";
 
 function sum(values: number[]) {
   return values.reduce((total, value) => total + value, 0);
@@ -20,6 +20,17 @@ function sum(values: number[]) {
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+function monthLabel(competence: string) {
+  const [year, month] = competence.split("-").map(Number);
+  const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+  return `${months[month - 1] ?? "Mês"}/${String(year).slice(-2)}`;
+}
+
+function isLoanInstallment(installment: Installment) {
+  return installment.source === "loan" || !installment.cardId;
 }
 
 function riskFromScore(score: number): RiskLevel {
@@ -65,18 +76,27 @@ function buildFutureCommitments(
   fixedExpenses: number,
   cards: Card[],
   debts: Debt[],
+  installments: Installment[],
+  baseCompetence: string,
 ): MonthlyCommitment[] {
   const debtPayments = sum(debts.map((debt) => debt.monthlyPayment));
+  const competences = nextCompetences(baseCompetence, 6);
 
-  return monthLabels.map((month, index) => {
+  return competences.map((competence, index) => {
     const cardInstallments = sum(cards.map((card) => card.futureInstallments[index] ?? 0));
-    const total = fixedExpenses + cardInstallments + debtPayments;
+    const loanInstallments = sum(
+      installments
+        .filter((installment) => installment.competence === competence && isLoanInstallment(installment))
+        .map((installment) => installment.amount),
+    );
+    const total = fixedExpenses + cardInstallments + debtPayments + loanInstallments;
 
     return {
-      month,
+      month: monthLabel(competence),
       cardInstallments,
       fixedExpenses,
       debts: debtPayments,
+      loanInstallments,
       total,
       projectedBalance: income - total,
     };
@@ -88,6 +108,8 @@ export function buildFinancialSummary(
   transactions: Transaction[],
   cards: Card[],
   debts: Debt[],
+  installments: Installment[] = [],
+  competence = transactions[0]?.competence ?? currentCompetence(),
 ): FinancialSummary {
   const income = sum(transactions.filter((item) => item.type === "income").map((item) => item.amount));
   const directExpenses = transactions.filter(
@@ -98,7 +120,12 @@ export function buildFinancialSummary(
     directExpenses.filter((item) => !item.fixed).map((item) => item.amount),
   );
   const cardInvoices = sum(cards.map((card) => card.currentInvoice));
-  const debtPayments = sum(debts.map((debt) => debt.monthlyPayment));
+  const currentLoanInstallments = sum(
+    installments
+      .filter((installment) => installment.competence === competence && isLoanInstallment(installment))
+      .map((installment) => installment.amount),
+  );
+  const debtPayments = sum(debts.map((debt) => debt.monthlyPayment)) + currentLoanInstallments;
   const totalOutflow = directFixedExpenses + directVariableExpenses + cardInvoices + debtPayments;
   const projectedBalance = income - totalOutflow;
   const committedIncomeRatio = income > 0 ? totalOutflow / income : 0;
@@ -140,7 +167,7 @@ export function buildFinancialSummary(
     riskLevel,
     financialStatus: statusFromRisk(riskLevel),
     adaptiveBudget: adaptiveBudgetFor(healthScore),
-    futureCommitments: buildFutureCommitments(income, directFixedExpenses, cards, debts),
+    futureCommitments: buildFutureCommitments(income, directFixedExpenses, cards, debts, installments, competence),
   };
 }
 
