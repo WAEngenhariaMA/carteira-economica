@@ -144,7 +144,7 @@ export function DashboardPage(props: WorkspacePageProps) {
         <Panel title="Categorias Pesadas" className="chart-panel">
           <Doughnut data={categoryChart} options={doughnutOptions} />
         </Panel>
-        <Panel title="Parcelas Futuras" className="chart-panel">
+        <Panel title="Compromissos por Competência" className="chart-panel">
           <Bar data={installmentChart} options={chartOptions} />
         </Panel>
         <Panel title="Diagnóstico Executivo">

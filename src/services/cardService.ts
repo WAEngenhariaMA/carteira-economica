@@ -50,7 +50,12 @@ export const cardService = {
         .reduce((total, installment) => total + Number(installment.amount ?? 0), 0);
       const futureInstallments = futureMonths.map((month) =>
         (installments ?? [])
-          .filter((installment) => installment.card_id === cardRow.id && installment.competence === month)
+          .filter(
+            (installment) =>
+              installment.card_id === cardRow.id
+              && installment.competence === month
+              && (month === competence || installment.status !== "paid"),
+          )
           .reduce((total, installment) => total + Number(installment.amount ?? 0), 0),
       );
       const currentInstallments = futureInstallments[0] ?? 0;

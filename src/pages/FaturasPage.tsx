@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { Panel, StatusPill } from "../components/ui/FinanceUI";
 import { formatMoney, formatNumberInput, normalizeMoneyInput } from "../lib/formatters";
@@ -8,7 +8,18 @@ import type { Invoice } from "../types/finance";
 
 export function FaturasPage({ userId, competence, workspace, refresh }: WorkspacePageProps) {
   const [editing, setEditing] = useState<Invoice | null>(null);
-  const [form, setForm] = useState({ cardId: workspace.cards[0]?.id ?? "", totalAmount: "", dueDate: `${competence}-10`, status: "open" });
+  const defaultCardId = workspace.cards[0]?.id ?? "";
+  const invoices = workspace.invoices.filter((invoice) => invoice.competence === competence);
+  const [form, setForm] = useState({ cardId: defaultCardId, totalAmount: "", dueDate: `${competence}-10`, status: "open" });
+
+  useEffect(() => {
+    if (editing) return;
+    setForm((current) => ({
+      ...current,
+      cardId: current.cardId || defaultCardId,
+      dueDate: `${competence}-10`,
+    }));
+  }, [competence, defaultCardId, editing]);
 
   function startEdit(invoice: Invoice) {
     setEditing(invoice);
@@ -22,7 +33,7 @@ export function FaturasPage({ userId, competence, workspace, refresh }: Workspac
 
   function resetForm() {
     setEditing(null);
-    setForm({ cardId: workspace.cards[0]?.id ?? "", totalAmount: "", dueDate: `${competence}-10`, status: "open" });
+    setForm({ cardId: defaultCardId, totalAmount: "", dueDate: `${competence}-10`, status: "open" });
   }
 
   return (
@@ -101,7 +112,7 @@ export function FaturasPage({ userId, competence, workspace, refresh }: Workspac
               </tr>
             </thead>
             <tbody>
-              {workspace.invoices.map((invoice) => {
+              {invoices.map((invoice) => {
                 const card = workspace.cards.find((item) => item.id === invoice.cardId);
                 return (
                   <tr key={invoice.id}>

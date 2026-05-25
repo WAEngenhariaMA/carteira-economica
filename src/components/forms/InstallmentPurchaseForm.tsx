@@ -47,6 +47,14 @@ export function InstallmentPurchaseForm({
     }));
   }, [cards, debts]);
 
+  useEffect(() => {
+    setForm((current) => ({
+      ...current,
+      purchaseDate: `${competence}-01`,
+      firstCompetence: competence,
+    }));
+  }, [competence]);
+
   const totalAmount = toNumber(form.totalAmount);
   const downPayment = toNumber(form.downPayment);
   const totalInstallments = Math.max(1, Math.floor(toNumber(form.totalInstallments)));

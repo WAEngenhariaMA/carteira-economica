@@ -9,7 +9,7 @@ import type { WorkspacePageProps } from "../app/routes";
 import type { Card } from "../types/finance";
 import { CreditCard, Pencil, Trash2 } from "lucide-react";
 
-export function CartoesPage({ userId, workspace, refresh }: WorkspacePageProps) {
+export function CartoesPage({ userId, competence, workspace, refresh }: WorkspacePageProps) {
   const [editing, setEditing] = useState<Card | null>(null);
   const invoiceChart = {
     labels: workspace.cards.map((card) => card.bank),
@@ -51,7 +51,7 @@ export function CartoesPage({ userId, workspace, refresh }: WorkspacePageProps) 
                     </div>
                   </div>
                   <div className="credit-metric">
-                    <span>Fatura</span>
+                    <span>Fatura da competência</span>
                     <strong>{formatMoney(card.currentInvoice)}</strong>
                   </div>
                   <div className="credit-progress">
@@ -101,6 +101,7 @@ export function CartoesPage({ userId, workspace, refresh }: WorkspacePageProps) 
             <tbody>
               {workspace.cards.map((card) => {
                 const ratio = card.limit > 0 ? card.currentInvoice / card.limit : 0;
+                const futureInstallments = card.futureInstallments.slice(1).reduce((acc, value) => acc + value, 0);
                 return (
                   <tr key={card.id}>
                     <td>
@@ -110,7 +111,10 @@ export function CartoesPage({ userId, workspace, refresh }: WorkspacePageProps) 
                     <td>{formatMoney(card.limit)}</td>
                     <td>{formatMoney(card.currentInvoice)}</td>
                     <td>Dia {card.dueDay}</td>
-                    <td>{formatMoney(card.futureInstallments.reduce((acc, value) => acc + value, 0))}</td>
+                    <td>
+                      <strong>{formatMoney(futureInstallments)}</strong>
+                      <span>Após {competence}</span>
+                    </td>
                     <td><RiskPill level={ratio > 0.45 ? "critical" : ratio > 0.3 ? "risk" : "attention"} /></td>
                     <td className="table-actions">
                       <button className="ghost-button icon-only" type="button" aria-label="Editar cartão" onClick={() => setEditing(card)}>

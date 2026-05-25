@@ -93,7 +93,12 @@ function buildFutureCommitments(
     const cardInstallments = sum(cards.map((card) => card.futureInstallments[index] ?? 0));
     const loanInstallments = sum(
       installments
-        .filter((installment) => installment.competence === competence && isLoanInstallment(installment))
+        .filter(
+          (installment) =>
+            installment.competence === competence
+            && isLoanInstallment(installment)
+            && (index === 0 || installment.status !== "paid"),
+        )
         .map((installment) => installment.amount),
     );
     const total = fixedExpenses + cardInstallments + debtPayments + loanInstallments;
@@ -390,7 +395,7 @@ export function buildAlerts(summary: FinancialSummary, cards: Card[]): AlertItem
     }
   });
 
-  if (summary.income > 0 && summary.futureCommitments.slice(0, 3).some((month) => month.total / summary.income > 0.45)) {
+  if (summary.income > 0 && summary.futureCommitments.slice(1, 4).some((month) => month.total / summary.income > 0.45)) {
     alerts.push({
       id: "alert-installments",
       title: "Próximos 3 meses já estão comprometidos",
