@@ -2,7 +2,7 @@ import { getSupabase } from "../lib/supabase";
 import { transactionBelongsToCompetence } from "../lib/financeEngine";
 import type { Transaction } from "../types/finance";
 import { mapTransaction, transactionToRow } from "./mappers";
-import { sameDayInCompetence } from "./dateService";
+import { sameDayInCompetence, shiftCompetence } from "./dateService";
 
 function projectRecurringTransaction(transaction: Transaction, competence: string): Transaction {
   if (transaction.competence === competence) return transaction;
@@ -36,13 +36,16 @@ function transactionSignature(transaction: Transaction) {
 export const transactionService = {
   async listByCompetence(userId: string, competence: string) {
     const client = getSupabase();
+    const nextCompetence = shiftCompetence(competence, 1);
     const [{ data: currentRows, error: currentError }, { data: recurringRows, error: recurringError }] =
       await Promise.all([
         client
           .from("transactions")
           .select("*")
           .eq("user_id", userId)
-          .eq("competence", competence),
+          .eq("competence", competence)
+          .gte("transaction_date", `${competence}-01`)
+          .lt("transaction_date", `${nextCompetence}-01`),
         client
           .from("transactions")
           .select("*")
@@ -60,6 +63,10 @@ export const transactionService = {
     const currentSignatures = new Set(currentTransactions.map(transactionSignature));
     const projectedRecurringTransactions = (recurringRows ?? [])
       .map(mapTransaction)
+      .filter((transaction) => {
+        const sourceDateCompetence = transaction.date?.slice(0, 7);
+        return !sourceDateCompetence || sourceDateCompetence <= competence;
+      })
       .map((transaction) => projectRecurringTransaction(transaction, competence))
       .filter((transaction) => !currentSignatures.has(transactionSignature(transaction)));
 

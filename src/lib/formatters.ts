@@ -40,6 +40,14 @@ export function formatPercent(value: number) {
   return percent.format(value);
 }
 
+export function formatDateShort(value: string | undefined) {
+  if (!value) return "";
+  const [year, month, day] = value.slice(0, 10).split("-");
+
+  if (!year || !month || !day) return value;
+  return `${day}/${month}`;
+}
+
 export function riskLabel(level: string) {
   const labels: Record<string, string> = {
     excellent: "Excelente",

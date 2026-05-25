@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Pencil, Trash2 } from "lucide-react";
-import { essentialityLabel, formatMoney, paymentRailLabel, transactionStatusLabel } from "../../lib/formatters";
+import { essentialityLabel, formatDateShort, formatMoney, paymentRailLabel, transactionStatusLabel } from "../../lib/formatters";
 import type { Transaction } from "../../types/finance";
 
 export function MoneyTable({
@@ -33,7 +33,7 @@ export function MoneyTable({
         <tbody>
           {rows.map((row) => (
             <tr key={row.id}>
-              <td>{row.date?.slice(5).replace("-", "/")}</td>
+              <td>{formatDateShort(row.date)}</td>
               <td>
                 <strong>{row.description}</strong>
                 <span>{row.projectedFromRecurring ? "Recorrente nesta competência" : row.subcategory || "Sem subcategoria"}</span>
