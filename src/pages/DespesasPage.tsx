@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ReceiptText, ShieldAlert, SlidersHorizontal } from "lucide-react";
+import { Clock3, ReceiptText, ShieldAlert, SlidersHorizontal } from "lucide-react";
 import { TransactionForm } from "../components/forms/TransactionForm";
 import { MoneyTable } from "../components/tables/MoneyTable";
 import { MetricCard, Panel } from "../components/ui/FinanceUI";
@@ -18,7 +18,8 @@ export function DespesasPage({ userId, competence, workspace, summary, refresh }
   return (
     <div className="screen-stack">
       <div className="kpi-grid compact">
-        <MetricCard icon={ReceiptText} label="Despesas Diretas" value={formatMoney(summary.directFixedExpenses + summary.directVariableExpenses)} helper="Fora do cartão" tone="neutral" />
+        <MetricCard icon={ReceiptText} label="Despesas Pagas" value={formatMoney(summary.paidDirectExpenses)} helper="Saídas já realizadas" tone="neutral" />
+        <MetricCard icon={Clock3} label="Despesas Pendentes" value={formatMoney(summary.pendingDirectExpenses)} helper="Abertas ou agendadas" tone={summary.pendingDirectExpenses > 0 ? "warn" : "good"} />
         <MetricCard icon={SlidersHorizontal} label="Cortável" value={formatMoney(cuttable)} helper="Supérfluo e impulsivo" tone="good" />
         <MetricCard icon={ShieldAlert} label="Impacto do Cartão" value={formatMoney(summary.cardInvoices)} helper="Fatura consolidada" tone="danger" />
       </div>

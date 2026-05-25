@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Pencil, Trash2 } from "lucide-react";
-import { essentialityLabel, formatMoney, paymentRailLabel, statusLabel } from "../../lib/formatters";
+import { essentialityLabel, formatMoney, paymentRailLabel, transactionStatusLabel } from "../../lib/formatters";
 import type { Transaction } from "../../types/finance";
 
 export function MoneyTable({
@@ -43,7 +43,11 @@ export function MoneyTable({
               <td>
                 <span className={clsx("tag", `tag-${row.essentiality}`)}>{essentialityLabel(row.essentiality)}</span>
               </td>
-              <td>{statusLabel(row.status)}</td>
+              <td>
+                <span className={clsx("risk-pill", `status-${row.status}`)}>
+                  {transactionStatusLabel(row.status, row.type)}
+                </span>
+              </td>
               <td className="num">{formatMoney(row.amount)}</td>
               {(onEdit || onDelete) && (
                 <td className="table-actions">

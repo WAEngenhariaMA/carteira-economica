@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { ActionForm } from "../components/forms/ActionForm";
 import { Panel, RiskPill, StatusPill } from "../components/ui/FinanceUI";
+import { buildRuleBasedActions } from "../lib/financeEngine";
 import { difficultyLabel, formatMoney } from "../lib/formatters";
 import { actionPlanService } from "../services/actionPlanService";
 import type { WorkspacePageProps } from "../app/routes";
 import type { ActionItem } from "../types/finance";
 
-export function PlanoAcaoPage({ userId, workspace, refresh }: WorkspacePageProps) {
+export function PlanoAcaoPage({ userId, workspace, summary, refresh }: WorkspacePageProps) {
   const [editing, setEditing] = useState<ActionItem | null>(null);
+  const savedActionTitles = new Set(workspace.actions.map((action) => action.title));
+  const suggestedActions = buildRuleBasedActions(summary).filter((action) => !savedActionTitles.has(action.title));
 
   return (
     <div className="screen-stack">
@@ -27,6 +30,49 @@ export function PlanoAcaoPage({ userId, workspace, refresh }: WorkspacePageProps
           }}
         />
       </Panel>
+      {suggestedActions.length > 0 && (
+        <Panel title="Sugestões do Motor Financeiro" className="table-panel">
+          <div className="data-table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Ação sugerida</th>
+                  <th>Prazo</th>
+                  <th>Prioridade</th>
+                  <th className="num">Impacto</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {suggestedActions.map((action) => (
+                  <tr key={action.id}>
+                    <td>
+                      <strong>{action.title}</strong>
+                      <span>{action.reason}</span>
+                    </td>
+                    <td>{action.horizon}</td>
+                    <td><RiskPill level={action.priority} /></td>
+                    <td className="num">{formatMoney(action.expectedSavings)}</td>
+                    <td className="table-actions">
+                      <button
+                        className="ghost-button icon-only"
+                        type="button"
+                        aria-label="Adicionar sugestão ao plano"
+                        onClick={async () => {
+                          await actionPlanService.create(userId, action);
+                          refresh();
+                        }}
+                      >
+                        <Plus size={15} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      )}
       <Panel title="Ações Priorizadas" className="table-panel">
         <div className="data-table-wrap">
           <table className="data-table">

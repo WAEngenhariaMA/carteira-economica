@@ -332,12 +332,12 @@ button {
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 14px;
 }
 
 .kpi-grid.compact {
-  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .metric-card,
@@ -598,8 +598,8 @@ button {
 
 .risk-pill.status-open,
 .status-open {
-  color: var(--blue);
-  background: var(--blue-soft);
+  color: var(--amber);
+  background: var(--amber-soft);
 }
 
 .risk-pill.status-closed,

@@ -111,7 +111,11 @@ export function buildFinancialSummary(
   installments: Installment[] = [],
   competence = transactions[0]?.competence ?? currentCompetence(),
 ): FinancialSummary {
-  const income = sum(transactions.filter((item) => item.type === "income").map((item) => item.amount));
+  const incomeTransactions = transactions.filter((item) => item.type === "income");
+  const confirmedIncome = sum(incomeTransactions.filter((item) => item.status === "paid").map((item) => item.amount));
+  const pendingIncome = sum(incomeTransactions.filter((item) => item.status !== "paid").map((item) => item.amount));
+  const expectedIncome = confirmedIncome + pendingIncome;
+  const income = expectedIncome;
   const directExpenses = transactions.filter(
     (item) => item.type === "expense" && item.paymentRail !== "card",
   );
@@ -119,6 +123,8 @@ export function buildFinancialSummary(
   const directVariableExpenses = sum(
     directExpenses.filter((item) => !item.fixed).map((item) => item.amount),
   );
+  const paidDirectExpenses = sum(directExpenses.filter((item) => item.status === "paid").map((item) => item.amount));
+  const pendingDirectExpenses = sum(directExpenses.filter((item) => item.status !== "paid").map((item) => item.amount));
   const cardInvoices = sum(cards.map((card) => card.currentInvoice));
   const currentLoanInstallments = sum(
     installments
@@ -128,33 +134,54 @@ export function buildFinancialSummary(
   const debtPayments = sum(debts.map((debt) => debt.monthlyPayment)) + currentLoanInstallments;
   const totalOutflow = directFixedExpenses + directVariableExpenses + cardInvoices + debtPayments;
   const projectedBalance = income - totalOutflow;
+  const realizedBalance = confirmedIncome - paidDirectExpenses;
+  const immediateObligations = pendingDirectExpenses + cardInvoices + debtPayments;
+  const cashShortfall = Math.max(immediateObligations - confirmedIncome, 0);
+  const pendingIncomeRatio = income > 0 ? pendingIncome / income : 0;
+  const pendingExpenseRatio = totalOutflow > 0 ? pendingDirectExpenses / totalOutflow : 0;
   const committedIncomeRatio = income > 0 ? totalOutflow / income : 0;
   const cardIncomeRatio = income > 0 ? cardInvoices / income : 0;
   const debtRatio = income > 0 ? (debtPayments + cardInvoices) / income : 0;
   const cardLoadPenalty = clamp(cardIncomeRatio - 0.25, 0, 1) * 26;
   const commitmentPenalty = clamp(committedIncomeRatio - 0.55, 0, 1) * 44;
   const debtPenalty = clamp(debtRatio - 0.3, 0, 1) * 25;
+  const receivablePenalty = clamp(pendingIncomeRatio - 0.25, 0, 1) * 12;
+  const cashPenalty = cashShortfall > 0 ? clamp(cashShortfall / Math.max(income, 1), 0, 1) * 16 : 0;
   const reservePenalty = profile.currentReserve < totalOutflow ? 14 : 0;
   const balancePenalty = projectedBalance < 0 ? 18 : 0;
   const healthScore = Math.round(
-    clamp(100 - cardLoadPenalty - commitmentPenalty - debtPenalty - reservePenalty - balancePenalty, 0, 100),
+    clamp(
+      100 - cardLoadPenalty - commitmentPenalty - debtPenalty - receivablePenalty - cashPenalty - reservePenalty - balancePenalty,
+      0,
+      100,
+    ),
   );
   const riskLevel = riskFromScore(healthScore);
-  const cardExpenses = transactions.filter((item) => item.type === "expense" && item.paymentRail === "card");
   const potentialSavings = sum(
-    cardExpenses
+    transactions
+      .filter((item) => item.type === "expense")
       .filter((item) => item.essentiality === "superfluous" || item.essentiality === "impulsive")
       .map((item) => item.amount * 0.65),
   );
 
   return {
     income,
+    confirmedIncome,
+    pendingIncome,
+    expectedIncome,
     directFixedExpenses,
     directVariableExpenses,
+    paidDirectExpenses,
+    pendingDirectExpenses,
     cardInvoices,
     debtPayments,
     totalOutflow,
     projectedBalance,
+    realizedBalance,
+    immediateObligations,
+    cashShortfall,
+    pendingIncomeRatio,
+    pendingExpenseRatio,
     committedIncomeRatio,
     cardIncomeRatio,
     debtRatio,
@@ -207,6 +234,39 @@ export function buildDiagnostics(summary: FinancialSummary, cards: Card[], debts
     });
   }
 
+  if (summary.pendingIncome > 0 && summary.pendingIncomeRatio > 0.25) {
+    findings.push({
+      id: "diag-receivables",
+      title: "Receitas pendentes sustentam parte relevante do mês",
+      description:
+        "Uma fatia importante da renda ainda não entrou no caixa. A recomendação gerencial é separar o orçamento em cenário confirmado e cenário previsto antes de liberar gastos variáveis.",
+      severity: summary.pendingIncomeRatio > 0.45 ? "risk" : "attention",
+      metric: "Recebíveis",
+    });
+  }
+
+  if (summary.pendingDirectExpenses > 0 && summary.cashShortfall > 0) {
+    findings.push({
+      id: "diag-payables",
+      title: "Obrigações pendentes acima do caixa confirmado",
+      description:
+        `Há ${summary.cashShortfall.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 })} sem cobertura por receita já recebida. Priorize vencimentos, juros e serviços essenciais antes de novos compromissos.`,
+      severity: summary.cashShortfall > summary.income * 0.25 ? "critical" : "risk",
+      metric: "Contas a pagar",
+    });
+  }
+
+  if (summary.realizedBalance < 0) {
+    findings.push({
+      id: "diag-realized-cash",
+      title: "Caixa realizado negativo",
+      description:
+        "O dinheiro efetivamente recebido não cobre o que já foi pago. Isso indica dependência de entradas futuras ou uso de crédito para fechar o mês.",
+      severity: "critical",
+      metric: "Caixa realizado",
+    });
+  }
+
   const highestInterestDebt = debts.find((debt) => debt.interestRateMonth >= 8);
   if (highestInterestDebt) {
     findings.push({
@@ -248,6 +308,26 @@ export function buildAlerts(summary: FinancialSummary, cards: Card[]): AlertItem
     });
   }
 
+  if (summary.cashShortfall > 0) {
+    alerts.push({
+      id: "alert-confirmed-cash",
+      title: "Caixa confirmado insuficiente",
+      message: "As contas pendentes, faturas e dívidas superam o dinheiro já recebido no mês.",
+      level: summary.cashShortfall > summary.income * 0.25 ? "critical" : "risk",
+      source: "cashflow",
+    });
+  }
+
+  if (summary.pendingIncomeRatio > 0.35) {
+    alerts.push({
+      id: "alert-pending-income",
+      title: "Receita pendente relevante",
+      message: "Parte importante do orçamento ainda depende de recebimentos não confirmados.",
+      level: "attention",
+      source: "cashflow",
+    });
+  }
+
   cards.forEach((card) => {
     const invoiceRatio = card.currentInvoice / card.limit;
     if (invoiceRatio > 0.35) {
@@ -261,7 +341,7 @@ export function buildAlerts(summary: FinancialSummary, cards: Card[]): AlertItem
     }
   });
 
-  if (summary.futureCommitments.slice(0, 3).some((month) => month.total / summary.income > 0.45)) {
+  if (summary.income > 0 && summary.futureCommitments.slice(0, 3).some((month) => month.total / summary.income > 0.45)) {
     alerts.push({
       id: "alert-installments",
       title: "Próximos 3 meses já estão comprometidos",
@@ -293,6 +373,32 @@ export function buildScenario(summary: FinancialSummary, monthlyCut: number, inc
 
 export function buildRuleBasedActions(summary: FinancialSummary): ActionItem[] {
   const actions: ActionItem[] = [];
+
+  if (summary.pendingIncome > 0) {
+    actions.push({
+      id: "rule-confirm-income",
+      title: "Confirmar recebimentos pendentes",
+      reason: "O plano do mês depende de receitas ainda não recebidas. Confirme datas, responsáveis e risco de atraso antes de liberar despesas variáveis.",
+      priority: summary.pendingIncomeRatio > 0.35 ? "urgent" : "high",
+      horizon: "7 dias",
+      expectedSavings: Math.round(summary.pendingIncome),
+      difficulty: "baixa",
+      status: "planned",
+    });
+  }
+
+  if (summary.cashShortfall > 0) {
+    actions.push({
+      id: "rule-cash-coverage",
+      title: "Montar ordem de pagamento por prioridade",
+      reason: "As obrigações pendentes superam o caixa confirmado. Pague primeiro essenciais e juros altos, renegocie o restante e evite novas compras.",
+      priority: "urgent",
+      horizon: "7 dias",
+      expectedSavings: Math.round(summary.cashShortfall),
+      difficulty: "media",
+      status: "planned",
+    });
+  }
 
   if (summary.cardIncomeRatio > 0.3) {
     actions.push({

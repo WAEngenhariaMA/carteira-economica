@@ -49,7 +49,7 @@ export function generateExecutivePdf({
     67,
   );
   doc.text(
-    `Saldo projetado: ${formatMoney(summary.projectedBalance)} | Economia potencial: ${formatMoney(summary.potentialSavings)}`,
+    `Saldo projetado: ${formatMoney(summary.projectedBalance)} | Caixa realizado: ${formatMoney(summary.realizedBalance)} | A receber: ${formatMoney(summary.pendingIncome)}`,
     14,
     74,
   );
@@ -58,7 +58,11 @@ export function generateExecutivePdf({
     startY: 84,
     head: [["Indicador", "Valor", "Interpretação"]],
     body: [
-      ["Renda mensal", formatMoney(summary.income), "Base de capacidade financeira"],
+      ["Renda prevista", formatMoney(summary.expectedIncome), "Recebida + pendente"],
+      ["Receita recebida", formatMoney(summary.confirmedIncome), "Caixa confirmado"],
+      ["Receita a receber", formatMoney(summary.pendingIncome), "Risco de realização"],
+      ["Despesas pendentes", formatMoney(summary.pendingDirectExpenses), "Contas abertas ou agendadas"],
+      ["Caixa sem cobertura", formatMoney(summary.cashShortfall), "Obrigações acima do caixa confirmado"],
       ["Faturas abertas", formatMoney(summary.cardInvoices), "Pressão de curto prazo"],
       ["Dívidas mensais", formatMoney(summary.debtPayments), "Obrigação recorrente"],
       ["Saldo previsto", formatMoney(summary.projectedBalance), "Fluxo após compromissos"],

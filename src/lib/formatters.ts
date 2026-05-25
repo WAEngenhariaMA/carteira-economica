@@ -62,6 +62,23 @@ export function statusLabel(status: string) {
   return labels[status] ?? status;
 }
 
+export function transactionStatusLabel(status: string, type: "income" | "expense") {
+  const labels: Record<"income" | "expense", Record<string, string>> = {
+    income: {
+      paid: "Recebida",
+      open: "A receber",
+      scheduled: "Prevista",
+    },
+    expense: {
+      paid: "Paga",
+      open: "Pendente",
+      scheduled: "Agendada",
+    },
+  };
+
+  return labels[type][status] ?? statusLabel(status);
+}
+
 export function essentialityLabel(value: string) {
   const labels: Record<string, string> = {
     essential: "Essencial",

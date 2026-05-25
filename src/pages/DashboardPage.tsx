@@ -1,4 +1,4 @@
-import { BadgeCheck, Brain, CircleDollarSign, CreditCard, ShieldAlert, TrendingDown, Wallet, WalletCards } from "lucide-react";
+import { BadgeCheck, Brain, CircleDollarSign, Clock3, CreditCard, ShieldAlert, TrendingDown, Wallet, WalletCards } from "lucide-react";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import { chartOptions, doughnutOptions } from "../components/charts/chartConfig";
 import { IconBadge, MetricCard, Panel, RiskPill } from "../components/ui/FinanceUI";
@@ -28,7 +28,7 @@ function HealthScore({ props }: { props: WorkspacePageProps }) {
         <div className="score-copy">
           <RiskPill level={summary.riskLevel} />
           <h3>{summary.financialStatus}</h3>
-          <p>Análise calculada com dados reais da competência selecionada e registros vinculados ao usuário logado.</p>
+          <p>Análise calculada com dados reais da competência selecionada, separando valores recebidos, pendentes e obrigações em aberto.</p>
           <div className="rule-row">
             <span>{summary.adaptiveBudget.label}</span>
             <strong>
@@ -125,11 +125,12 @@ export function DashboardPage(props: WorkspacePageProps) {
   return (
     <div className="screen-stack">
       <div className="kpi-grid">
-        <MetricCard icon={CircleDollarSign} label="Renda Mensal" value={formatMoney(summary.income)} helper="Receita confirmada no mês" tone="good" />
+        <MetricCard icon={CircleDollarSign} label="Renda Prevista" value={formatMoney(summary.expectedIncome)} helper={`Recebido ${formatMoney(summary.confirmedIncome)} | a receber ${formatMoney(summary.pendingIncome)}`} tone="good" />
+        <MetricCard icon={Wallet} label="Caixa Realizado" value={formatMoney(summary.realizedBalance)} helper="Recebido menos despesas pagas" tone={summary.realizedBalance >= 0 ? "good" : "danger"} />
+        <MetricCard icon={Clock3} label="Obrigações Abertas" value={formatMoney(summary.immediateObligations)} helper={summary.cashShortfall > 0 ? `Falta cobrir ${formatMoney(summary.cashShortfall)}` : "Cobertas pelo caixa previsto"} tone={summary.cashShortfall > 0 ? "danger" : "warn"} />
         <MetricCard icon={TrendingDown} label="Renda Comprometida" value={formatPercent(summary.committedIncomeRatio)} helper="Fixos, faturas e dívidas" tone={summary.committedIncomeRatio > 0.7 ? "danger" : "warn"} />
         <MetricCard icon={WalletCards} label="Faturas" value={formatMoney(summary.cardInvoices)} helper={`${formatPercent(summary.cardIncomeRatio)} da renda`} tone={summary.cardIncomeRatio > 0.3 ? "danger" : "neutral"} />
-        <MetricCard icon={BadgeCheck} label="Economia Potencial" value={formatMoney(summary.potentialSavings)} helper="Cortes sem mexer no essencial" tone="good" />
-        <MetricCard icon={Wallet} label="Saldo Previsto" value={formatMoney(summary.projectedBalance)} helper="Depois dos compromissos" tone={summary.projectedBalance >= 0 ? "good" : "danger"} />
+        <MetricCard icon={BadgeCheck} label="Saldo Previsto" value={formatMoney(summary.projectedBalance)} helper="Renda prevista menos compromissos" tone={summary.projectedBalance >= 0 ? "good" : "danger"} />
       </div>
 
       <div className="dashboard-grid">

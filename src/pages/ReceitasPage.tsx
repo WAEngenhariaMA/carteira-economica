@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Banknote, TrendingUp, Gauge } from "lucide-react";
+import { Banknote, Clock3, Gauge, TrendingUp } from "lucide-react";
 import { TransactionForm } from "../components/forms/TransactionForm";
 import { MoneyTable } from "../components/tables/MoneyTable";
 import { MetricCard, Panel } from "../components/ui/FinanceUI";
@@ -15,9 +15,10 @@ export function ReceitasPage({ userId, competence, workspace, summary, refresh }
   return (
     <div className="screen-stack">
       <div className="kpi-grid compact">
-        <MetricCard icon={Banknote} label="Receita Confirmada" value={formatMoney(summary.income)} helper="Entradas no mês" tone="good" />
-        <MetricCard icon={TrendingUp} label="Renda Ideal" value={formatMoney(workspace.profile.idealIncome)} helper="Para regra confortável" tone="neutral" />
-        <MetricCard icon={Gauge} label="Diferença de Renda" value={formatMoney(Math.max(workspace.profile.idealIncome - summary.income, 0))} helper="Distância para conforto" tone="warn" />
+        <MetricCard icon={Banknote} label="Receita Recebida" value={formatMoney(summary.confirmedIncome)} helper="Dinheiro já confirmado no caixa" tone="good" />
+        <MetricCard icon={Clock3} label="A Receber" value={formatMoney(summary.pendingIncome)} helper="Receitas pendentes ou previstas" tone={summary.pendingIncome > 0 ? "warn" : "neutral"} />
+        <MetricCard icon={TrendingUp} label="Renda Prevista" value={formatMoney(summary.expectedIncome)} helper="Recebida + pendente" tone="neutral" />
+        <MetricCard icon={Gauge} label="Diferença de Renda" value={formatMoney(Math.max(workspace.profile.idealIncome - summary.expectedIncome, 0))} helper="Distância para conforto" tone="warn" />
       </div>
       <Panel title={editing ? "Editar Receita" : "Cadastrar Receita"}>
         <TransactionForm

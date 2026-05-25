@@ -218,12 +218,22 @@ export interface BudgetRule {
 
 export interface FinancialSummary {
   income: number;
+  confirmedIncome: number;
+  pendingIncome: number;
+  expectedIncome: number;
   directFixedExpenses: number;
   directVariableExpenses: number;
+  paidDirectExpenses: number;
+  pendingDirectExpenses: number;
   cardInvoices: number;
   debtPayments: number;
   totalOutflow: number;
   projectedBalance: number;
+  realizedBalance: number;
+  immediateObligations: number;
+  cashShortfall: number;
+  pendingIncomeRatio: number;
+  pendingExpenseRatio: number;
   committedIncomeRatio: number;
   cardIncomeRatio: number;
   debtRatio: number;

@@ -1,7 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { IconBadge, Panel, RiskPill } from "../components/ui/FinanceUI";
-import { buildDiagnostics } from "../lib/financeEngine";
-import { formatMoney } from "../lib/formatters";
+import { buildDiagnostics, buildRuleBasedActions } from "../lib/financeEngine";
+import { formatMoney, formatPercent } from "../lib/formatters";
 import type { WorkspacePageProps } from "../app/routes";
 
 function BudgetBar({ label, ratio, amount }: { label: string; ratio: number; amount: number }) {
@@ -21,6 +21,7 @@ function BudgetBar({ label, ratio, amount }: { label: string; ratio: number; amo
 
 export function DiagnosticoPage({ workspace, summary }: WorkspacePageProps) {
   const diagnostics = buildDiagnostics(summary, workspace.cards, workspace.debts);
+  const suggestedActions = buildRuleBasedActions(summary);
 
   return (
     <div className="screen-stack">
@@ -36,7 +37,18 @@ export function DiagnosticoPage({ workspace, summary }: WorkspacePageProps) {
           <div className="score-copy">
             <RiskPill level={summary.riskLevel} />
             <h3>{summary.financialStatus}</h3>
-            <p>Diagnóstico calculado por regras objetivas. A próxima etapa profissional é persistir esses achados e enviar para uma função de borda de IA.</p>
+            <p>
+              Diagnóstico gerencial calculado com caixa recebido, receitas a receber, despesas pendentes,
+              faturas, dívidas e parcelas futuras. A recomendação prioriza liquidez antes de crescimento.
+            </p>
+            <div className="rule-row">
+              <span>A receber</span>
+              <strong>{formatPercent(summary.pendingIncomeRatio)}</strong>
+            </div>
+            <div className="rule-row">
+              <span>Pendências sobre saídas</span>
+              <strong>{formatPercent(summary.pendingExpenseRatio)}</strong>
+            </div>
           </div>
         </Panel>
       </div>
@@ -51,6 +63,22 @@ export function DiagnosticoPage({ workspace, summary }: WorkspacePageProps) {
               <h3>{item.title}</h3>
               <p>{item.description}</p>
               <span>{item.metric}</span>
+            </article>
+          ))}
+        </div>
+      </Panel>
+      <Panel title="Plano Gerencial Sugerido">
+        <div className="action-list">
+          {suggestedActions.map((action) => (
+            <article className="action-row" key={action.id}>
+              <div>
+                <strong>{action.title}</strong>
+                <span>{action.reason}</span>
+              </div>
+              <div className="action-meta">
+                <RiskPill level={action.priority} label={action.horizon} />
+                <strong>{formatMoney(action.expectedSavings)}</strong>
+              </div>
             </article>
           ))}
         </div>

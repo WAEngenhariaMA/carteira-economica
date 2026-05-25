@@ -18,6 +18,7 @@ function blankForm(competence: string, type: "income" | "expense", initialValue?
   bank: string;
   paymentRail: PaymentRail;
   essentiality: Essentiality;
+  status: Transaction["status"];
   fixed: boolean;
   recurring: boolean;
 } {
@@ -30,9 +31,26 @@ function blankForm(competence: string, type: "income" | "expense", initialValue?
     bank: initialValue?.bank ?? "",
     paymentRail: initialValue?.paymentRail ?? ("bank" as const),
     essentiality: initialValue?.essentiality ?? (type === "income" ? "important" : "essential"),
+    status: initialValue?.status ?? (type === "income" ? "paid" : "open"),
     fixed: initialValue?.fixed ?? false,
     recurring: initialValue?.recurring ?? false,
   };
+}
+
+function statusOptions(type: "income" | "expense") {
+  if (type === "income") {
+    return [
+      { value: "paid", label: "Recebida" },
+      { value: "open", label: "A receber" },
+      { value: "scheduled", label: "Prevista" },
+    ] as const;
+  }
+
+  return [
+    { value: "paid", label: "Paga" },
+    { value: "open", label: "Pendente" },
+    { value: "scheduled", label: "Agendada" },
+  ] as const;
 }
 
 export function TransactionForm({ competence, type, onSubmit, initialValue, onCancel }: TransactionFormProps) {
@@ -61,7 +79,7 @@ export function TransactionForm({ competence, type, onSubmit, initialValue, onCa
         fixed: form.fixed,
         paymentRail: form.paymentRail,
         bank: form.bank,
-        status: initialValue?.status ?? (type === "income" ? "paid" : "open"),
+        status: form.status,
         priority: initialValue?.priority ?? (type === "income" ? "adjustable" : "mandatory"),
         impact: initialValue?.impact ?? (Number(form.amount) > 1000 ? "high" : "medium"),
         cardId: initialValue?.cardId,
@@ -130,6 +148,14 @@ export function TransactionForm({ competence, type, onSubmit, initialValue, onCa
           <option value="important">Importante</option>
           <option value="superfluous">Supérfluo</option>
           <option value="impulsive">Impulsivo</option>
+        </select>
+      </label>
+      <label>
+        Status
+        <select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as Transaction["status"] })}>
+          {statusOptions(type).map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
         </select>
       </label>
       <label className="check-line">
