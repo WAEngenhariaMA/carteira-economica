@@ -34,6 +34,14 @@ function isLoanInstallment(installment: Installment) {
   return installment.source === "loan" || !installment.cardId;
 }
 
+function isPaidTransaction(transaction: Transaction) {
+  return transaction.status === "paid";
+}
+
+function isProjectableTransaction(transaction: Transaction) {
+  return transaction.recurring || transaction.fixed || transaction.projectedFromRecurring;
+}
+
 export function transactionBelongsToCompetence(transaction: Transaction, competence: string) {
   const dateCompetence = transaction.date?.slice(0, 7);
 
@@ -82,39 +90,109 @@ function adaptiveBudgetFor(score: number): BudgetRule {
   return { needs: 0.8, wants: 0.05, reserveOrDebt: 0.15, label: "80/5/15 emergência" };
 }
 
-function buildFutureCommitments(
-  income: number,
-  fixedExpenses: number,
-  cards: Card[],
-  debts: Debt[],
-  installments: Installment[],
-  baseCompetence: string,
-): MonthlyCommitment[] {
+interface MonthlyProjectionInput {
+  monthlyTransactions: Transaction[];
+  cards: Card[];
+  debts: Debt[];
+  installments: Installment[];
+  baseCompetence: string;
+  currentCardInvoices: number;
+  referenceMonthlyIncome: number;
+  programmedInvestments?: number;
+  programmedReserve?: number;
+}
+
+function buildFutureCommitments({
+  monthlyTransactions,
+  cards,
+  debts,
+  installments,
+  baseCompetence,
+  currentCardInvoices,
+  referenceMonthlyIncome,
+  programmedInvestments = 0,
+  programmedReserve = 0,
+}: MonthlyProjectionInput): MonthlyCommitment[] {
   const debtPayments = sum(debts.map((debt) => debt.monthlyPayment));
   const competences = nextCompetences(baseCompetence, 6);
+  const currentIncomeTransactions = monthlyTransactions.filter((item) => item.type === "income");
+  const currentDirectExpenses = monthlyTransactions.filter(
+    (item) => item.type === "expense" && item.paymentRail !== "card",
+  );
+  const recurringIncomeTransactions = currentIncomeTransactions.filter(isProjectableTransaction);
+  const recurringDirectExpenses = currentDirectExpenses.filter(isProjectableTransaction);
+  const fallbackProjectedIncome = referenceMonthlyIncome;
 
   return competences.map((competence, index) => {
-    const cardInstallments = sum(cards.map((card) => card.futureInstallments[index] ?? 0));
+    const isSelectedCompetence = index === 0;
+    const incomeRows = isSelectedCompetence ? currentIncomeTransactions : recurringIncomeTransactions;
+    const projectedRecurringIncome = sum(incomeRows.map((item) => item.amount)) || fallbackProjectedIncome;
+    const receivedIncome = isSelectedCompetence
+      ? sum(incomeRows.filter(isPaidTransaction).map((item) => item.amount))
+      : 0;
+    const pendingIncome = isSelectedCompetence
+      ? sum(incomeRows.filter((item) => !isPaidTransaction(item)).map((item) => item.amount))
+      : projectedRecurringIncome;
+    const expectedIncome = receivedIncome + pendingIncome;
+    const directExpenseRows = isSelectedCompetence ? currentDirectExpenses : recurringDirectExpenses;
+    const paidFixedExpenses = isSelectedCompetence
+      ? sum(directExpenseRows.filter((item) => item.fixed && isPaidTransaction(item)).map((item) => item.amount))
+      : 0;
+    const openFixedExpenses = isSelectedCompetence
+      ? sum(directExpenseRows.filter((item) => item.fixed && !isPaidTransaction(item)).map((item) => item.amount))
+      : sum(directExpenseRows.filter((item) => item.fixed).map((item) => item.amount));
+    const paidVariableExpenses = isSelectedCompetence
+      ? sum(directExpenseRows.filter((item) => !item.fixed && isPaidTransaction(item)).map((item) => item.amount))
+      : 0;
+    const openVariableExpenses = isSelectedCompetence
+      ? sum(directExpenseRows.filter((item) => !item.fixed && !isPaidTransaction(item)).map((item) => item.amount))
+      : sum(directExpenseRows.filter((item) => !item.fixed).map((item) => item.amount));
+    const fixedExpenses = paidFixedExpenses + openFixedExpenses;
+    const variableExpenses = paidVariableExpenses + openVariableExpenses;
+    const cardInvoices = isSelectedCompetence
+      ? currentCardInvoices
+      : sum(cards.map((card) => card.futureInstallments[index] ?? 0));
+    const nonInvoicedCardInstallments = 0;
     const loanInstallments = sum(
       installments
         .filter(
           (installment) =>
             installment.competence === competence
             && isLoanInstallment(installment)
-            && (index === 0 || installment.status !== "paid"),
+            && (isSelectedCompetence || installment.status !== "paid"),
         )
         .map((installment) => installment.amount),
     );
-    const total = fixedExpenses + cardInstallments + debtPayments + loanInstallments;
+    const mandatoryCommitments = fixedExpenses
+      + variableExpenses
+      + debtPayments
+      + loanInstallments
+      + programmedInvestments
+      + programmedReserve;
+    const total = mandatoryCommitments + cardInvoices + nonInvoicedCardInstallments;
 
     return {
       month: monthLabel(competence),
-      cardInstallments,
+      competence,
+      receivedIncome,
+      pendingIncome,
+      expectedIncome,
+      paidFixedExpenses,
+      openFixedExpenses,
+      paidVariableExpenses,
+      openVariableExpenses,
+      variableExpenses,
+      cardInvoices,
+      cardInstallments: cardInvoices,
+      nonInvoicedCardInstallments,
       fixedExpenses,
       debts: debtPayments,
       loanInstallments,
+      programmedInvestments,
+      programmedReserve,
+      mandatoryCommitments,
       total,
-      projectedBalance: income - total,
+      projectedBalance: expectedIncome - total,
     };
   });
 }
@@ -143,20 +221,21 @@ export function buildFinancialSummary(
   );
   const paidDirectExpenses = sum(directExpenses.filter((item) => item.status === "paid").map((item) => item.amount));
   const pendingDirectExpenses = sum(directExpenses.filter((item) => item.status !== "paid").map((item) => item.amount));
-  const cardsWithInvoiceRows = new Set(invoices.map((invoice) => invoice.cardId));
+  const currentInvoiceRows = invoices.filter((invoice) => invoiceBelongsToCompetence(invoice, competence));
+  const cardsWithInvoiceRows = new Set(currentInvoiceRows.map((invoice) => invoice.cardId));
   const fallbackCardInvoices = sum(
     cards
       .filter((card) => !cardsWithInvoiceRows.has(card.id))
       .map((card) => card.currentInvoice),
   );
   const paidCardInvoices = sum(
-    invoices
-      .filter((invoice) => invoiceBelongsToCompetence(invoice, competence) && invoice.status === "paid")
+    currentInvoiceRows
+      .filter((invoice) => invoice.status === "paid")
       .map((invoice) => invoice.totalAmount),
   );
   const openCardInvoices = fallbackCardInvoices + sum(
-    invoices
-      .filter((invoice) => invoiceBelongsToCompetence(invoice, competence) && invoice.status !== "paid")
+    currentInvoiceRows
+      .filter((invoice) => invoice.status !== "paid")
       .map((invoice) => invoice.totalAmount),
   );
   const cardInvoices = paidCardInvoices + openCardInvoices;
@@ -182,7 +261,15 @@ export function buildFinancialSummary(
   const monthlyOpenObligations = pendingDirectExpenses + openCardInvoices + debtMonthlyPayments + pendingLoanInstallments;
   const immediateObligations = monthlyOpenObligations;
   const cashShortfall = Math.max(monthlyOpenObligations - Math.max(realizedBalance, 0), 0);
-  const futureCommitments = buildFutureCommitments(income, directFixedExpenses, cards, debts, installments, competence);
+  const futureCommitments = buildFutureCommitments({
+    monthlyTransactions,
+    cards,
+    debts,
+    installments,
+    baseCompetence: competence,
+    currentCardInvoices: cardInvoices,
+    referenceMonthlyIncome: profile.monthlyIncomeTarget > 0 ? profile.monthlyIncomeTarget : income,
+  });
   const futureCommitmentRows = futureCommitments.slice(1);
   const nextMonthCommitment = futureCommitmentRows[0]?.total ?? 0;
   const futureCommitmentsTotal = sum(futureCommitmentRows.map((month) => month.total));

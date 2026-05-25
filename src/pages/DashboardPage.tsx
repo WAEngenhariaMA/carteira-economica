@@ -132,22 +132,39 @@ export function DashboardPage(props: WorkspacePageProps) {
   const commitmentHelper = summary.expectedIncome > 0
     ? "Despesas, faturas e dívidas da competência"
     : `Compromissos de ${formatMoney(summary.totalOutflow)} sem renda no mês`;
+  const hasNegativeProjectedMonth = summary.futureCommitments.some((item) => item.projectedBalance < 0);
   const cashflowData = {
     labels: summary.futureCommitments.map((item) => item.month),
     datasets: [
       {
-        label: "Saldo projetado",
-        data: summary.futureCommitments.map((item) => item.projectedBalance),
-        borderColor: "#0f766e",
-        backgroundColor: "rgba(15, 118, 110, 0.12)",
-        fill: true,
+        label: "Receita prevista",
+        data: summary.futureCommitments.map((item) => item.expectedIncome),
+        borderColor: "#16a34a",
+        backgroundColor: "rgba(22, 163, 74, 0.08)",
+        fill: false,
         tension: 0.35,
       },
       {
-        label: "Compromissos",
+        label: "Compromissos totais",
         data: summary.futureCommitments.map((item) => item.total),
         borderColor: "#b45309",
         backgroundColor: "rgba(180, 83, 9, 0.08)",
+        fill: false,
+        tension: 0.35,
+      },
+      {
+        label: "Faturas/cartões",
+        data: summary.futureCommitments.map((item) => item.cardInvoices),
+        borderColor: "#dc2626",
+        backgroundColor: "rgba(220, 38, 38, 0.08)",
+        fill: false,
+        tension: 0.35,
+      },
+      {
+        label: "Saldo livre projetado",
+        data: summary.futureCommitments.map((item) => item.projectedBalance),
+        borderColor: "#0f766e",
+        backgroundColor: "rgba(15, 118, 110, 0.12)",
         fill: true,
         tension: 0.35,
       },
@@ -166,7 +183,7 @@ export function DashboardPage(props: WorkspacePageProps) {
   const installmentChart = {
     labels: summary.futureCommitments.map((item) => item.month),
     datasets: [
-      { label: "Cartão", data: summary.futureCommitments.map((item) => item.cardInstallments), backgroundColor: "#0f766e", borderRadius: 6 },
+      { label: "Faturas/cartões", data: summary.futureCommitments.map((item) => item.cardInvoices), backgroundColor: "#0f766e", borderRadius: 6 },
       { label: "Empréstimos", data: summary.futureCommitments.map((item) => item.loanInstallments), backgroundColor: "#2563eb", borderRadius: 6 },
       { label: "Dívidas", data: summary.futureCommitments.map((item) => item.debts), backgroundColor: "#b45309", borderRadius: 6 },
     ],
@@ -187,8 +204,13 @@ export function DashboardPage(props: WorkspacePageProps) {
 
       <div className="dashboard-grid">
         <HealthScore props={props} />
-        <Panel title="Projeção de Fluxo" className="chart-panel">
+        <Panel title="Projeção de Fluxo por Competência" className="chart-panel flow-panel">
           <Line data={cashflowData} options={chartOptions} />
+          {hasNegativeProjectedMonth && (
+            <p className="chart-note danger">
+              Há competência com saldo livre negativo. A linha verde mostra o que sobra depois de renda prevista, despesas diretas, faturas, parcelas, dívidas e empréstimos.
+            </p>
+          )}
         </Panel>
       </div>
 

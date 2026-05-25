@@ -201,10 +201,24 @@ export interface FinancialWorkspace {
 
 export interface MonthlyCommitment {
   month: string;
+  competence: string;
+  receivedIncome: number;
+  pendingIncome: number;
+  expectedIncome: number;
+  paidFixedExpenses: number;
+  openFixedExpenses: number;
+  paidVariableExpenses: number;
+  openVariableExpenses: number;
+  variableExpenses: number;
+  cardInvoices: number;
   cardInstallments: number;
+  nonInvoicedCardInstallments: number;
   fixedExpenses: number;
   debts: number;
   loanInstallments: number;
+  programmedInvestments: number;
+  programmedReserve: number;
+  mandatoryCommitments: number;
   total: number;
   projectedBalance: number;
 }

@@ -114,8 +114,9 @@ export function ParcelasPage({ userId, competence, workspace, summary, refresh }
                   <i style={{ width: `${Math.min(ratio * 100, 100)}%` }} />
                 </div>
                 <div className="timeline-values">
-                  <span>Cartão {formatMoney(item.cardInstallments)}</span>
+                  <span>Faturas/cartões {formatMoney(item.cardInvoices)}</span>
                   <span>Fixos {formatMoney(item.fixedExpenses)}</span>
+                  <span>Variáveis {formatMoney(item.variableExpenses)}</span>
                   <span>Empréstimos {formatMoney(item.loanInstallments)}</span>
                   <span>Dívidas {formatMoney(item.debts)}</span>
                   <strong>Saldo {formatMoney(item.projectedBalance)}</strong>

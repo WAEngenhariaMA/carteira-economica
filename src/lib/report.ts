@@ -72,7 +72,7 @@ export function generateExecutivePdf({
       ["Faturas do mês", formatMoney(summary.cardInvoices), "Total da competência"],
       ["Faturas abertas do mês", formatMoney(summary.openCardInvoices), "Pressão de curto prazo"],
       ["Dívidas mensais", formatMoney(summary.debtPayments), "Obrigação recorrente da competência"],
-      ["Compromissos futuros", formatMoney(summary.futureCommitmentsTotal), "Próximos 5 meses, sem o mês atual"],
+      ["Compromissos futuros", formatMoney(summary.futureCommitmentsTotal), "Faturas, parcelas, fixos, recorrentes, dívidas e empréstimos"],
       ["Saldo previsto", formatMoney(summary.projectedBalance), "Fluxo após compromissos"],
       ["Regra adaptativa", summary.adaptiveBudget.label, "Modelo recomendado para o momento"],
     ],

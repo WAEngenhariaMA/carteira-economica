@@ -472,6 +472,27 @@ button {
   max-height: 248px;
 }
 
+.flow-panel {
+  display: grid;
+}
+
+.chart-note {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  color: var(--muted);
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.chart-note.danger {
+  color: var(--red);
+  background: var(--red-soft);
+  border-color: #ffd0d0;
+}
+
 .score-panel {
   min-height: 320px;
 }
@@ -922,7 +943,7 @@ button {
 
 .timeline-values {
   display: grid;
-  grid-template-columns: repeat(4, minmax(90px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
   gap: 10px;
 }
 

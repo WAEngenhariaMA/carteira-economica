@@ -190,7 +190,7 @@ function buildInstallmentsExplanation(summary: FinancialSummary) {
     return "Não há parcelas futuras relevantes cadastradas. Isso melhora a flexibilidade dos próximos meses.";
   }
 
-  return `${monthText} Nos próximos 5 meses, há ${formatMoney(summary.futureCommitmentsTotal)} em compromissos projetados, incluindo parcelas, dívidas e fixos. Mesmo parando de gastar hoje, essa pressão ainda precisa ser administrada.`;
+  return `${monthText} Nos próximos 5 meses, há ${formatMoney(summary.futureCommitmentsTotal)} em compromissos projetados, incluindo faturas, parcelas, fixos, variáveis recorrentes, dívidas e empréstimos. Mesmo parando de gastar hoje, essa pressão ainda precisa ser administrada.`;
 }
 
 function buildWhatToDoFirst(summary: FinancialSummary, actions: ActionItem[]) {
