@@ -34,6 +34,13 @@ function isLoanInstallment(installment: Installment) {
   return installment.source === "loan" || !installment.cardId;
 }
 
+export function transactionBelongsToCompetence(transaction: Transaction, competence: string) {
+  const dateCompetence = transaction.date?.slice(0, 7);
+
+  if (transaction.projectedFromRecurring) return transaction.competence === competence;
+  return transaction.competence === competence && (!dateCompetence || dateCompetence === competence);
+}
+
 function riskFromScore(score: number): RiskLevel {
   if (score >= 85) return "excellent";
   if (score >= 70) return "healthy";
@@ -112,12 +119,13 @@ export function buildFinancialSummary(
   competence = transactions[0]?.competence ?? currentCompetence(),
   invoices: Invoice[] = [],
 ): FinancialSummary {
-  const incomeTransactions = transactions.filter((item) => item.type === "income");
+  const monthlyTransactions = transactions.filter((item) => transactionBelongsToCompetence(item, competence));
+  const incomeTransactions = monthlyTransactions.filter((item) => item.type === "income");
   const confirmedIncome = sum(incomeTransactions.filter((item) => item.status === "paid").map((item) => item.amount));
   const pendingIncome = sum(incomeTransactions.filter((item) => item.status !== "paid").map((item) => item.amount));
   const expectedIncome = confirmedIncome + pendingIncome;
   const income = expectedIncome;
-  const directExpenses = transactions.filter(
+  const directExpenses = monthlyTransactions.filter(
     (item) => item.type === "expense" && item.paymentRail !== "card",
   );
   const directFixedExpenses = sum(directExpenses.filter((item) => item.fixed).map((item) => item.amount));
@@ -193,7 +201,7 @@ export function buildFinancialSummary(
   );
   const riskLevel = riskFromScore(healthScore);
   const potentialSavings = sum(
-    transactions
+    monthlyTransactions
       .filter((item) => item.type === "expense")
       .filter((item) => item.essentiality === "superfluous" || item.essentiality === "impulsive")
       .map((item) => item.amount * 0.65),
@@ -496,8 +504,11 @@ export function buildRuleBasedActions(summary: FinancialSummary): ActionItem[] {
   return actions;
 }
 
-export function categoryTotals(transactions: Transaction[]) {
-  const expenseTransactions = transactions.filter((item) => item.type === "expense");
+export function categoryTotals(transactions: Transaction[], competence?: string) {
+  const scopedTransactions = competence
+    ? transactions.filter((item) => transactionBelongsToCompetence(item, competence))
+    : transactions;
+  const expenseTransactions = scopedTransactions.filter((item) => item.type === "expense");
   const totals = expenseTransactions.reduce<Record<string, number>>((acc, item) => {
     acc[item.category] = (acc[item.category] ?? 0) + item.amount;
     return acc;

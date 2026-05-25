@@ -3,6 +3,7 @@ import { Banknote, Clock3, Gauge, TrendingUp } from "lucide-react";
 import { TransactionForm } from "../components/forms/TransactionForm";
 import { MoneyTable } from "../components/tables/MoneyTable";
 import { MetricCard, Panel } from "../components/ui/FinanceUI";
+import { transactionBelongsToCompetence } from "../lib/financeEngine";
 import { formatMoney } from "../lib/formatters";
 import { transactionService } from "../services/transactionService";
 import type { WorkspacePageProps } from "../app/routes";
@@ -10,7 +11,7 @@ import type { Transaction } from "../types/finance";
 
 export function ReceitasPage({ userId, competence, workspace, summary, refresh }: WorkspacePageProps) {
   const [editing, setEditing] = useState<Transaction | null>(null);
-  const rows = workspace.transactions.filter((item) => item.type === "income");
+  const rows = workspace.transactions.filter((item) => item.type === "income" && transactionBelongsToCompetence(item, competence));
 
   return (
     <div className="screen-stack">

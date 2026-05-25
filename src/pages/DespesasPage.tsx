@@ -3,6 +3,7 @@ import { CalendarClock, Clock3, ReceiptText, ShieldAlert, SlidersHorizontal } fr
 import { TransactionForm } from "../components/forms/TransactionForm";
 import { MoneyTable } from "../components/tables/MoneyTable";
 import { MetricCard, Panel } from "../components/ui/FinanceUI";
+import { transactionBelongsToCompetence } from "../lib/financeEngine";
 import { formatMoney } from "../lib/formatters";
 import { transactionService } from "../services/transactionService";
 import type { WorkspacePageProps } from "../app/routes";
@@ -10,7 +11,7 @@ import type { Transaction } from "../types/finance";
 
 export function DespesasPage({ userId, competence, workspace, summary, refresh }: WorkspacePageProps) {
   const [editing, setEditing] = useState<Transaction | null>(null);
-  const rows = workspace.transactions.filter((item) => item.type === "expense");
+  const rows = workspace.transactions.filter((item) => item.type === "expense" && transactionBelongsToCompetence(item, competence));
   const cuttable = rows
     .filter((item) => item.essentiality === "superfluous" || item.essentiality === "impulsive")
     .reduce((total, item) => total + item.amount, 0);

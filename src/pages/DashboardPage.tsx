@@ -79,9 +79,9 @@ function CardsModule({ props }: { props: WorkspacePageProps }) {
 }
 
 export function DashboardPage(props: WorkspacePageProps) {
-  const { summary, workspace } = props;
+  const { competence, summary, workspace } = props;
   const diagnostics = buildDiagnostics(summary, workspace.cards, workspace.debts);
-  const categoryData = categoryTotals(workspace.transactions);
+  const categoryData = categoryTotals(workspace.transactions, competence);
   const cashflowData = {
     labels: summary.futureCommitments.map((item) => item.month),
     datasets: [

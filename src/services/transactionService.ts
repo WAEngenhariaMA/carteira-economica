@@ -1,4 +1,5 @@
 import { getSupabase } from "../lib/supabase";
+import { transactionBelongsToCompetence } from "../lib/financeEngine";
 import type { Transaction } from "../types/finance";
 import { mapTransaction, transactionToRow } from "./mappers";
 import { sameDayInCompetence } from "./dateService";
@@ -53,7 +54,9 @@ export const transactionService = {
     if (currentError) throw currentError;
     if (recurringError) throw recurringError;
 
-    const currentTransactions = (currentRows ?? []).map(mapTransaction);
+    const currentTransactions = (currentRows ?? [])
+      .map(mapTransaction)
+      .filter((transaction) => transactionBelongsToCompetence(transaction, competence));
     const currentSignatures = new Set(currentTransactions.map(transactionSignature));
     const projectedRecurringTransactions = (recurringRows ?? [])
       .map(mapTransaction)
