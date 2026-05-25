@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatNumberInput, normalizeMoneyInput } from "../../lib/formatters";
 import type { Card } from "../../types/finance";
 
 export function CardForm({
@@ -14,7 +15,7 @@ export function CardForm({
   const [form, setForm] = useState(() => ({
     bank: initialValue?.bank ?? "",
     name: initialValue?.name ?? "",
-    limit: initialValue ? String(initialValue.limit) : "",
+    limit: initialValue ? formatNumberInput(initialValue.limit) : "",
     dueDay: initialValue ? String(initialValue.dueDay) : "10",
     closingDay: initialValue ? String(initialValue.closingDay) : "3",
     interestRateMonth: initialValue ? String(initialValue.interestRateMonth) : "12.5",
@@ -24,7 +25,7 @@ export function CardForm({
     setForm({
       bank: initialValue?.bank ?? "",
       name: initialValue?.name ?? "",
-      limit: initialValue ? String(initialValue.limit) : "",
+      limit: initialValue ? formatNumberInput(initialValue.limit) : "",
       dueDay: initialValue ? String(initialValue.dueDay) : "10",
       closingDay: initialValue ? String(initialValue.closingDay) : "3",
       interestRateMonth: initialValue ? String(initialValue.interestRateMonth) : "12.5",
@@ -63,7 +64,15 @@ export function CardForm({
       </label>
       <label>
         Limite
-        <input value={form.limit} type="number" min="0" step="0.01" onChange={(event) => setForm({ ...form, limit: event.target.value })} required />
+        <input
+          value={form.limit}
+          type="number"
+          min="0"
+          step="0.01"
+          onBlur={() => setForm({ ...form, limit: normalizeMoneyInput(form.limit) })}
+          onChange={(event) => setForm({ ...form, limit: event.target.value })}
+          required
+        />
       </label>
       <label>
         Vencimento

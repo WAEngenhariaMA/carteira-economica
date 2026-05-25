@@ -250,7 +250,7 @@ export function buildDiagnostics(summary: FinancialSummary, cards: Card[], debts
       id: "diag-payables",
       title: "Obrigações pendentes acima do caixa confirmado",
       description:
-        `Há ${summary.cashShortfall.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 })} sem cobertura por receita já recebida. Priorize vencimentos, juros e serviços essenciais antes de novos compromissos.`,
+        `Há ${summary.cashShortfall.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2, maximumFractionDigits: 2 })} sem cobertura por receita já recebida. Priorize vencimentos, juros e serviços essenciais antes de novos compromissos.`,
       severity: summary.cashShortfall > summary.income * 0.25 ? "critical" : "risk",
       metric: "Contas a pagar",
     });

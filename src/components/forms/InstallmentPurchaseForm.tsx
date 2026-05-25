@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Card, Debt, InstallmentPurchaseInput, InstallmentSource } from "../../types/finance";
-import { formatMoney } from "../../lib/formatters";
+import { formatMoney, normalizeMoneyInput } from "../../lib/formatters";
 
 function toNumber(value: string) {
   const parsed = Number(value);
@@ -33,7 +33,7 @@ export function InstallmentPurchaseForm({
     category: cards.length > 0 ? "Compras parceladas" : "Empréstimos",
     purchaseDate: `${competence}-01`,
     totalAmount: "",
-    downPayment: "0",
+    downPayment: "0.00",
     totalInstallments: "2",
     firstCompetence: competence,
   });
@@ -90,7 +90,7 @@ export function InstallmentPurchaseForm({
         ...current,
         description: "",
         totalAmount: "",
-        downPayment: "0",
+        downPayment: "0.00",
         totalInstallments: "2",
       }));
     } catch (submissionError) {
@@ -152,11 +152,26 @@ export function InstallmentPurchaseForm({
       </label>
       <label>
         Valor total
-        <input value={form.totalAmount} type="number" min="0.01" step="0.01" onChange={(event) => setForm({ ...form, totalAmount: event.target.value })} required />
+        <input
+          value={form.totalAmount}
+          type="number"
+          min="0.01"
+          step="0.01"
+          onBlur={() => setForm({ ...form, totalAmount: normalizeMoneyInput(form.totalAmount) })}
+          onChange={(event) => setForm({ ...form, totalAmount: event.target.value })}
+          required
+        />
       </label>
       <label>
         Entrada
-        <input value={form.downPayment} type="number" min="0" step="0.01" onChange={(event) => setForm({ ...form, downPayment: event.target.value })} />
+        <input
+          value={form.downPayment}
+          type="number"
+          min="0"
+          step="0.01"
+          onBlur={() => setForm({ ...form, downPayment: normalizeMoneyInput(form.downPayment) })}
+          onChange={(event) => setForm({ ...form, downPayment: event.target.value })}
+        />
       </label>
       <label>
         Número de parcelas

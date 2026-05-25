@@ -1,3 +1,5 @@
+import { formatMoney } from "../../lib/formatters";
+
 export const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
@@ -16,6 +18,12 @@ export const chartOptions = {
       bodyColor: "#d9e2ee",
       borderColor: "#1f3a55",
       borderWidth: 1,
+      callbacks: {
+        label: (context: any) => {
+          const value = typeof context.parsed === "object" ? context.parsed.y : context.parsed;
+          return `${context.dataset.label ?? "Valor"}: ${formatMoney(Number(value ?? 0))}`;
+        },
+      },
     },
   },
   scales: {
@@ -26,7 +34,10 @@ export const chartOptions = {
     },
     y: {
       grid: { color: "#edf2f7" },
-      ticks: { color: "#667085" },
+      ticks: {
+        color: "#667085",
+        callback: (value: string | number) => formatMoney(Number(value)),
+      },
       border: { display: false },
     },
   },
@@ -42,6 +53,11 @@ export const doughnutOptions = {
         color: "#667085",
         boxWidth: 10,
         usePointStyle: true,
+      },
+    },
+    tooltip: {
+      callbacks: {
+        label: (context: any) => `${context.label}: ${formatMoney(Number(context.parsed ?? 0))}`,
       },
     },
   },

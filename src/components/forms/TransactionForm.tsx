@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatNumberInput, normalizeMoneyInput } from "../../lib/formatters";
 import type { Essentiality, PaymentRail, Transaction } from "../../types/finance";
 
 interface TransactionFormProps {
@@ -25,7 +26,7 @@ function blankForm(competence: string, type: "income" | "expense", initialValue?
   return {
     date: initialValue?.date ?? `${competence}-01`,
     description: initialValue?.description ?? "",
-    amount: initialValue ? String(initialValue.amount) : "",
+    amount: initialValue ? formatNumberInput(initialValue.amount) : "",
     category: initialValue?.category ?? (type === "income" ? "Renda" : "Sem categoria"),
     subcategory: initialValue?.subcategory ?? "",
     bank: initialValue?.bank ?? "",
@@ -118,7 +119,15 @@ export function TransactionForm({ competence, type, onSubmit, initialValue, onCa
       </label>
       <label>
         Valor
-        <input value={form.amount} type="number" min="0" step="0.01" onChange={(event) => setForm({ ...form, amount: event.target.value })} required />
+        <input
+          value={form.amount}
+          type="number"
+          min="0"
+          step="0.01"
+          onBlur={() => setForm({ ...form, amount: normalizeMoneyInput(form.amount) })}
+          onChange={(event) => setForm({ ...form, amount: event.target.value })}
+          required
+        />
       </label>
       <label>
         Categoria

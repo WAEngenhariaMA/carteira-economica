@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { Panel, StatusPill } from "../components/ui/FinanceUI";
-import { formatMoney } from "../lib/formatters";
+import { formatMoney, formatNumberInput, normalizeMoneyInput } from "../lib/formatters";
 import { invoiceService } from "../services/invoiceService";
 import type { WorkspacePageProps } from "../app/routes";
 import type { Invoice } from "../types/finance";
@@ -14,7 +14,7 @@ export function FaturasPage({ userId, competence, workspace, refresh }: Workspac
     setEditing(invoice);
     setForm({
       cardId: invoice.cardId,
-      totalAmount: String(invoice.totalAmount),
+      totalAmount: formatNumberInput(invoice.totalAmount),
       dueDate: invoice.dueDate,
       status: invoice.status,
     });
@@ -54,7 +54,15 @@ export function FaturasPage({ userId, competence, workspace, refresh }: Workspac
           </label>
           <label>
             Valor
-            <input value={form.totalAmount} type="number" min="0" step="0.01" onChange={(event) => setForm({ ...form, totalAmount: event.target.value })} required />
+            <input
+              value={form.totalAmount}
+              type="number"
+              min="0"
+              step="0.01"
+              onBlur={() => setForm({ ...form, totalAmount: normalizeMoneyInput(form.totalAmount) })}
+              onChange={(event) => setForm({ ...form, totalAmount: event.target.value })}
+              required
+            />
           </label>
           <label>
             Vencimento

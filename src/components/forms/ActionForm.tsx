@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatNumberInput, normalizeMoneyInput } from "../../lib/formatters";
 import type { ActionItem } from "../../types/finance";
 
 export function ActionForm({
@@ -15,7 +16,7 @@ export function ActionForm({
     reason: initialValue?.reason ?? "",
     priority: initialValue?.priority ?? "high",
     horizon: initialValue?.horizon ?? "30 dias",
-    expectedSavings: initialValue ? String(initialValue.expectedSavings) : "",
+    expectedSavings: initialValue ? formatNumberInput(initialValue.expectedSavings) : "",
     difficulty: initialValue?.difficulty ?? "media",
     status: initialValue?.status ?? "planned",
   });
@@ -27,7 +28,7 @@ export function ActionForm({
       reason: initialValue?.reason ?? "",
       priority: initialValue?.priority ?? "high",
       horizon: initialValue?.horizon ?? "30 dias",
-      expectedSavings: initialValue ? String(initialValue.expectedSavings) : "",
+      expectedSavings: initialValue ? formatNumberInput(initialValue.expectedSavings) : "",
       difficulty: initialValue?.difficulty ?? "media",
       status: initialValue?.status ?? "planned",
     });
@@ -84,7 +85,15 @@ export function ActionForm({
       </label>
       <label>
         Economia estimada
-        <input value={form.expectedSavings} type="number" min="0" onChange={(event) => setForm({ ...form, expectedSavings: event.target.value })} required />
+        <input
+          value={form.expectedSavings}
+          type="number"
+          min="0"
+          step="0.01"
+          onBlur={() => setForm({ ...form, expectedSavings: normalizeMoneyInput(form.expectedSavings) })}
+          onChange={(event) => setForm({ ...form, expectedSavings: event.target.value })}
+          required
+        />
       </label>
       <label>
         Dificuldade

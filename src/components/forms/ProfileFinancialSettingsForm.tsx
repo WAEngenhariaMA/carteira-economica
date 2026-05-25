@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { formatNumberInput, normalizeMoneyInput } from "../../lib/formatters";
 import type { FinancialProfile } from "../../types/finance";
 
 function moneyInput(value: number) {
-  return value > 0 ? String(value) : "";
+  return value > 0 ? formatNumberInput(value) : "";
 }
 
 function optionalMoney(value: string) {
@@ -59,19 +60,51 @@ export function ProfileFinancialSettingsForm({
     <form className="entry-form" onSubmit={handleSubmit}>
       <label>
         Renda alvo mensal
-        <input value={form.monthlyIncomeTarget} type="number" min="0" placeholder="Preencher depois" onChange={(event) => setForm({ ...form, monthlyIncomeTarget: event.target.value })} />
+        <input
+          value={form.monthlyIncomeTarget}
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="Preencher depois"
+          onBlur={() => setForm({ ...form, monthlyIncomeTarget: normalizeMoneyInput(form.monthlyIncomeTarget) })}
+          onChange={(event) => setForm({ ...form, monthlyIncomeTarget: event.target.value })}
+        />
       </label>
       <label>
         Reserva atual
-        <input value={form.currentReserve} type="number" min="0" placeholder="Preencher depois" onChange={(event) => setForm({ ...form, currentReserve: event.target.value })} />
+        <input
+          value={form.currentReserve}
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="Preencher depois"
+          onBlur={() => setForm({ ...form, currentReserve: normalizeMoneyInput(form.currentReserve) })}
+          onChange={(event) => setForm({ ...form, currentReserve: event.target.value })}
+        />
       </label>
       <label>
         Meta de reserva
-        <input value={form.reserveTarget} type="number" min="0" placeholder="Preencher depois" onChange={(event) => setForm({ ...form, reserveTarget: event.target.value })} />
+        <input
+          value={form.reserveTarget}
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="Preencher depois"
+          onBlur={() => setForm({ ...form, reserveTarget: normalizeMoneyInput(form.reserveTarget) })}
+          onChange={(event) => setForm({ ...form, reserveTarget: event.target.value })}
+        />
       </label>
       <label>
         Renda ideal
-        <input value={form.idealIncome} type="number" min="0" placeholder="Preencher depois" onChange={(event) => setForm({ ...form, idealIncome: event.target.value })} />
+        <input
+          value={form.idealIncome}
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="Preencher depois"
+          onBlur={() => setForm({ ...form, idealIncome: normalizeMoneyInput(form.idealIncome) })}
+          onChange={(event) => setForm({ ...form, idealIncome: event.target.value })}
+        />
       </label>
       <label>
         Perfil de risco

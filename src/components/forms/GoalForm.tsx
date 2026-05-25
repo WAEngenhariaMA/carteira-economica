@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatNumberInput, normalizeMoneyInput } from "../../lib/formatters";
 import type { Goal } from "../../types/finance";
 
 export function GoalForm({
@@ -12,8 +13,8 @@ export function GoalForm({
 }) {
   const [form, setForm] = useState({
     name: initialValue?.name ?? "",
-    target: initialValue ? String(initialValue.target) : "",
-    current: initialValue ? String(initialValue.current) : "0",
+    target: initialValue ? formatNumberInput(initialValue.target) : "",
+    current: initialValue ? formatNumberInput(initialValue.current) : "0.00",
     deadline: initialValue?.deadline ?? "",
     priority: initialValue?.priority ?? "medium",
   });
@@ -22,8 +23,8 @@ export function GoalForm({
   useEffect(() => {
     setForm({
       name: initialValue?.name ?? "",
-      target: initialValue ? String(initialValue.target) : "",
-      current: initialValue ? String(initialValue.current) : "0",
+      target: initialValue ? formatNumberInput(initialValue.target) : "",
+      current: initialValue ? formatNumberInput(initialValue.current) : "0.00",
       deadline: initialValue?.deadline ?? "",
       priority: initialValue?.priority ?? "medium",
     });
@@ -41,7 +42,7 @@ export function GoalForm({
         priority: form.priority as Goal["priority"],
       });
       if (!initialValue) {
-        setForm({ name: "", target: "", current: "0", deadline: "", priority: "medium" });
+        setForm({ name: "", target: "", current: "0.00", deadline: "", priority: "medium" });
       }
     } finally {
       setSaving(false);
@@ -56,11 +57,26 @@ export function GoalForm({
       </label>
       <label>
         Valor alvo
-        <input value={form.target} type="number" min="0" onChange={(event) => setForm({ ...form, target: event.target.value })} required />
+        <input
+          value={form.target}
+          type="number"
+          min="0"
+          step="0.01"
+          onBlur={() => setForm({ ...form, target: normalizeMoneyInput(form.target) })}
+          onChange={(event) => setForm({ ...form, target: event.target.value })}
+          required
+        />
       </label>
       <label>
         Atual
-        <input value={form.current} type="number" min="0" onChange={(event) => setForm({ ...form, current: event.target.value })} />
+        <input
+          value={form.current}
+          type="number"
+          min="0"
+          step="0.01"
+          onBlur={() => setForm({ ...form, current: normalizeMoneyInput(form.current) })}
+          onChange={(event) => setForm({ ...form, current: event.target.value })}
+        />
       </label>
       <label>
         Prazo

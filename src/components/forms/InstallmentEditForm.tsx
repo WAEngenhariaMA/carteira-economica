@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatNumberInput, normalizeMoneyInput } from "../../lib/formatters";
 import type { Card, Debt, Installment, InstallmentSource } from "../../types/finance";
 
 export function InstallmentEditForm({
@@ -25,7 +26,7 @@ export function InstallmentEditForm({
     competence: installment.competence,
     installmentNumber: String(installment.installmentNumber),
     totalInstallments: String(installment.totalInstallments),
-    amount: String(installment.amount),
+    amount: formatNumberInput(installment.amount),
     status: installment.status,
   });
 
@@ -40,7 +41,7 @@ export function InstallmentEditForm({
       competence: installment.competence,
       installmentNumber: String(installment.installmentNumber),
       totalInstallments: String(installment.totalInstallments),
-      amount: String(installment.amount),
+      amount: formatNumberInput(installment.amount),
       status: installment.status,
     });
   }, [installment]);
@@ -119,7 +120,15 @@ export function InstallmentEditForm({
       </label>
       <label>
         Valor
-        <input value={form.amount} type="number" min="0.01" step="0.01" onChange={(event) => setForm({ ...form, amount: event.target.value })} required />
+        <input
+          value={form.amount}
+          type="number"
+          min="0.01"
+          step="0.01"
+          onBlur={() => setForm({ ...form, amount: normalizeMoneyInput(form.amount) })}
+          onChange={(event) => setForm({ ...form, amount: event.target.value })}
+          required
+        />
       </label>
       <label>
         Status

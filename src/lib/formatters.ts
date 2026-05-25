@@ -1,12 +1,15 @@
 export const money = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
-  maximumFractionDigits: 0,
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 });
 
 export const moneyPrecise = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 });
 
 export const percent = new Intl.NumberFormat("pt-BR", {
@@ -20,6 +23,17 @@ export function formatMoney(value: number) {
 
 export function formatMoneyPrecise(value: number) {
   return moneyPrecise.format(value);
+}
+
+export function formatNumberInput(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value) ? value.toFixed(2) : "";
+}
+
+export function normalizeMoneyInput(value: string) {
+  if (value.trim() === "") return "";
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed.toFixed(2) : value;
 }
 
 export function formatPercent(value: number) {
