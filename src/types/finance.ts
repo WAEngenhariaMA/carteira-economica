@@ -37,6 +37,7 @@ export type MainFinancialObjective =
   | "reduce_cards";
 export type ScreenId =
   | "dashboard"
+  | "indicadores"
   | "receitas"
   | "despesas"
   | "cartoes"

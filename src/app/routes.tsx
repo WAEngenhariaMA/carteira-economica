@@ -2,6 +2,7 @@ import {
   Bell,
   Brain,
   Calculator,
+  Gauge,
   CreditCard,
   FileText,
   LayoutDashboard,
@@ -28,6 +29,7 @@ export interface WorkspacePageProps {
 
 export const navItems: Array<{ id: ScreenId; label: string; icon: LucideIcon }> = [
   { id: "dashboard", label: "Painel", icon: LayoutDashboard },
+  { id: "indicadores", label: "Indicadores", icon: Gauge },
   { id: "receitas", label: "Receitas", icon: Banknote },
   { id: "despesas", label: "Despesas", icon: ReceiptText },
   { id: "cartoes", label: "Cartões", icon: WalletCards },
@@ -45,6 +47,7 @@ export const navItems: Array<{ id: ScreenId; label: string; icon: LucideIcon }> 
 
 export const screenTitles: Record<ScreenId, string> = {
   dashboard: "Painel Executivo",
+  indicadores: "Indicadores de Decisão",
   receitas: "Receitas",
   despesas: "Despesas",
   cartoes: "Cartões",

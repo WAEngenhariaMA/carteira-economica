@@ -24,6 +24,7 @@ import { AuthPage } from "../pages/AuthPage";
 import { SupabaseSetupPage } from "../pages/SupabaseSetupPage";
 import { ProfileSetupPage } from "../pages/ProfileSetupPage";
 import { DashboardPage } from "../pages/DashboardPage";
+import { IndicadoresPage } from "../pages/IndicadoresPage";
 import { ReceitasPage } from "../pages/ReceitasPage";
 import { DespesasPage } from "../pages/DespesasPage";
 import { CartoesPage } from "../pages/CartoesPage";
@@ -112,6 +113,7 @@ function ProtectedApp() {
 
   const renderScreen = () => {
     if (activeScreen === "dashboard") return <DashboardPage {...pageProps} />;
+    if (activeScreen === "indicadores") return <IndicadoresPage {...pageProps} />;
     if (activeScreen === "receitas") return <ReceitasPage {...pageProps} />;
     if (activeScreen === "despesas") return <DespesasPage {...pageProps} />;
     if (activeScreen === "cartoes") return <CartoesPage {...pageProps} />;
