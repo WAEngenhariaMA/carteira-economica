@@ -9,22 +9,59 @@ import { transactionService } from "../services/transactionService";
 import type { WorkspacePageProps } from "../app/routes";
 import type { Transaction } from "../types/finance";
 
-export function ReceitasPage({ userId, competence, workspace, summary, refresh }: WorkspacePageProps) {
+export function ReceitasPage({
+  userId,
+  competence,
+  workspace,
+  summary,
+  refresh,
+}: WorkspacePageProps) {
   const [editing, setEditing] = useState<Transaction | null>(null);
-  const rows = workspace.transactions.filter((item) => item.type === "income" && transactionBelongsToCompetence(item, competence));
+  const rows = workspace.transactions.filter(
+    (item) =>
+      item.type === "income" &&
+      transactionBelongsToCompetence(item, competence),
+  );
 
   return (
     <div className="screen-stack">
       <div className="kpi-grid compact">
-        <MetricCard icon={Banknote} label="Receita Recebida no Mês" value={formatMoney(summary.confirmedIncome)} helper="Dinheiro já confirmado no caixa" tone="good" />
-        <MetricCard icon={Clock3} label="A Receber no Mês" value={formatMoney(summary.pendingIncome)} helper="Receitas pendentes ou previstas na competência" tone={summary.pendingIncome > 0 ? "warn" : "neutral"} />
-        <MetricCard icon={TrendingUp} label="Renda Prevista do Mês" value={formatMoney(summary.expectedIncome)} helper="Recebida + pendente" tone="neutral" />
-        <MetricCard icon={Gauge} label="Diferença de Renda" value={formatMoney(Math.max(workspace.profile.idealIncome - summary.expectedIncome, 0))} helper="Distância para conforto" tone="warn" />
+        <MetricCard
+          icon={Banknote}
+          label="Receita Recebida no Mês"
+          value={formatMoney(summary.confirmedIncome)}
+          helper="Dinheiro já confirmado no caixa"
+          tone="good"
+        />
+        <MetricCard
+          icon={Clock3}
+          label="A Receber no Mês"
+          value={formatMoney(summary.pendingIncome)}
+          helper="Receitas pendentes ou previstas na competência"
+          tone={summary.pendingIncome > 0 ? "warn" : "neutral"}
+        />
+        <MetricCard
+          icon={TrendingUp}
+          label="Renda Prevista do Mês"
+          value={formatMoney(summary.expectedIncome)}
+          helper="Recebida + pendente"
+          tone="neutral"
+        />
+        <MetricCard
+          icon={Gauge}
+          label="Diferença de Renda"
+          value={formatMoney(
+            Math.max(workspace.profile.idealIncome - summary.expectedIncome, 0),
+          )}
+          helper="Distância para conforto"
+          tone="warn"
+        />
       </div>
       <Panel title={editing ? "Editar Receita" : "Cadastrar Receita"}>
         <TransactionForm
           competence={competence}
           type="income"
+          categories={workspace.categories}
           initialValue={editing}
           onCancel={() => setEditing(null)}
           onSubmit={async (transaction) => {

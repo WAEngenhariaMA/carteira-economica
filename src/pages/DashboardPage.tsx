@@ -1,4 +1,16 @@
-import { BadgeCheck, Brain, CircleDollarSign, Clock3, CreditCard, ListChecks, ShieldAlert, TrendingDown, Wallet, WalletCards } from "lucide-react";
+import {
+  BadgeCheck,
+  Brain,
+  CircleDollarSign,
+  Clock3,
+  CreditCard,
+  ListChecks,
+  ReceiptText,
+  Rows3,
+  ShieldAlert,
+  TrendingDown,
+  WalletCards,
+} from "lucide-react";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import { chartOptions, doughnutOptions } from "../components/charts/chartConfig";
 import { IconBadge, MetricCard, Panel, RiskPill } from "../components/ui/FinanceUI";
@@ -126,6 +138,8 @@ export function DashboardPage(props: WorkspacePageProps) {
   const { competence, summary, workspace } = props;
   const diagnostics = buildDiagnostics(summary, workspace.cards, workspace.debts);
   const categoryData = categoryTotals(workspace.transactions, competence);
+  const currentProjection = summary.futureCommitments[0];
+  const monthInstallments = currentProjection?.cardInstallments ?? 0;
   const commitmentValue = summary.expectedIncome > 0
     ? formatPercent(summary.committedIncomeRatio)
     : summary.totalOutflow > 0 ? "Sem renda" : "0%";
@@ -191,12 +205,13 @@ export function DashboardPage(props: WorkspacePageProps) {
 
   return (
     <div className="screen-stack">
-      <div className="kpi-grid">
-        <MetricCard icon={CircleDollarSign} label="Renda do Mês" value={formatMoney(summary.expectedIncome)} helper={`Recebido ${formatMoney(summary.confirmedIncome)} | a receber ${formatMoney(summary.pendingIncome)}`} tone="good" />
-        <MetricCard icon={Wallet} label="Caixa Realizado no Mês" value={formatMoney(summary.realizedBalance)} helper="Recebido menos valores já pagos" tone={summary.realizedBalance >= 0 ? "good" : "danger"} />
-        <MetricCard icon={Clock3} label="A Pagar no Mês" value={formatMoney(summary.monthlyOpenObligations)} helper={`Inclui faturas abertas: ${formatMoney(summary.openCardInvoices)}`} tone={summary.cashShortfall > 0 ? "danger" : "warn"} />
+      <div className="kpi-grid dashboard-kpi-grid">
+        <MetricCard icon={CircleDollarSign} label="Renda Recebida no Mês" value={formatMoney(summary.confirmedIncome)} helper="Dinheiro que já entrou no caixa da competência" tone="good" />
+        <MetricCard icon={Clock3} label="Receitas a Receber" value={formatMoney(summary.pendingIncome)} helper={summary.pendingIncome > 0 ? "Ainda depende de confirmação ou pagamento" : "Nada pendente para entrar nesta competência"} tone={summary.pendingIncome > 0 ? "warn" : "good"} />
+        <MetricCard icon={ReceiptText} label="Compromissos Totais do Mês" value={formatMoney(summary.totalOutflow)} helper={`Comprometimento: ${commitmentValue}. ${commitmentHelper}`} tone={summary.committedIncomeRatio > 0.7 || summary.expectedIncome <= 0 && summary.totalOutflow > 0 ? "danger" : "warn"} />
         <MetricCard icon={TrendingDown} label="Comprometimento do Mês" value={commitmentValue} helper={commitmentHelper} tone={summary.committedIncomeRatio > 0.7 || summary.expectedIncome <= 0 && summary.totalOutflow > 0 ? "danger" : "warn"} />
-        <MetricCard icon={WalletCards} label="Faturas Vencendo no Mês" value={formatMoney(summary.cardInvoices)} helper={`Detalhe do cartão; já incluído em A Pagar`} tone={summary.cardIncomeRatio > 0.3 ? "danger" : "neutral"} />
+        <MetricCard icon={WalletCards} label="Faturas do Mês" value={formatMoney(summary.cardInvoices)} helper={`Abertas ${formatMoney(summary.openCardInvoices)} | pagas ${formatMoney(summary.paidCardInvoices)}`} tone={summary.cardIncomeRatio > 0.3 ? "danger" : "neutral"} />
+        <MetricCard icon={Rows3} label="Parcelas do Mês" value={formatMoney(monthInstallments)} helper="Parcelas de cartão; empréstimos ficam no card de dívidas" tone={monthInstallments > 0 ? "warn" : "good"} />
         <MetricCard icon={BadgeCheck} label="Saldo Previsto do Mês" value={formatMoney(summary.projectedBalance)} helper={`Renda ${formatMoney(summary.expectedIncome)} - compromissos ${formatMoney(summary.totalOutflow)}`} tone={summary.projectedBalance >= 0 ? "good" : "danger"} />
       </div>
 

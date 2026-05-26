@@ -1,7 +1,24 @@
 export type TransactionType = "income" | "expense";
-export type Essentiality = "essential" | "important" | "superfluous" | "impulsive";
+export type CategoryType =
+  | "income"
+  | "expense"
+  | "investment"
+  | "debt"
+  | "transfer";
+export type Essentiality =
+  | "essential"
+  | "important"
+  | "adjustable"
+  | "superfluous"
+  | "impulsive";
 export type PaymentRail = "bank" | "card" | "cash" | "loan";
-export type RiskLevel = "excellent" | "healthy" | "attention" | "risk" | "critical" | "emergency";
+export type RiskLevel =
+  | "excellent"
+  | "healthy"
+  | "attention"
+  | "risk"
+  | "critical"
+  | "emergency";
 export type ActionStatus = "planned" | "running" | "done";
 export type ActionPriority = "urgent" | "high" | "medium" | "low";
 export type InstallmentSource = "card" | "loan";
@@ -20,6 +37,21 @@ export type ScreenId =
   | "simulador"
   | "relatorios"
   | "configuracoes";
+
+export interface FinancialCategory {
+  id: string;
+  name: string;
+  type: CategoryType;
+  essentiality: Essentiality;
+  parentId?: string;
+  parentName?: string;
+  color: string;
+  icon: string;
+  monthlyLimit: number;
+  keywords: string[];
+  isDefault: boolean;
+  isActive: boolean;
+}
 
 export interface FinancialProfile {
   id: string;
@@ -197,6 +229,7 @@ export interface FinancialWorkspace {
   investments: Investment[];
   goals: Goal[];
   actions: ActionItem[];
+  categories: FinancialCategory[];
 }
 
 export interface MonthlyCommitment {

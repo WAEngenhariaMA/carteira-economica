@@ -1,7 +1,7 @@
 create extension if not exists "uuid-ossp";
 
 create type transaction_type as enum ('income', 'expense');
-create type essentiality_type as enum ('essential', 'important', 'superfluous', 'impulsive');
+create type essentiality_type as enum ('essential', 'important', 'adjustable', 'superfluous', 'impulsive');
 create type payment_rail_type as enum ('bank', 'card', 'cash', 'loan');
 create type risk_level_type as enum ('excellent', 'healthy', 'attention', 'risk', 'critical', 'emergency');
 create type action_status_type as enum ('planned', 'running', 'done');
@@ -25,8 +25,16 @@ create table if not exists public.categories (
   id uuid primary key default uuid_generate_v4(),
   user_id uuid references auth.users(id) on delete cascade,
   name text not null,
+  category_type text not null default 'expense',
+  parent_id uuid references public.categories(id) on delete cascade,
   parent_name text,
   default_essentiality essentiality_type not null default 'important',
+  color text not null default '#0f766e',
+  icon text not null default 'Tag',
+  monthly_limit numeric(14,2) not null default 0,
+  keywords text[] not null default '{}',
+  is_default boolean not null default false,
+  is_active boolean not null default true,
   created_at timestamptz not null default now()
 );
 

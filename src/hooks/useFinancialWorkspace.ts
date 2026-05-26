@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { buildFinancialSummary, buildRuleBasedActions } from "../lib/financeEngine";
+import {
+  buildFinancialSummary,
+  buildRuleBasedActions,
+} from "../lib/financeEngine";
 import type { FinancialProfile, FinancialWorkspace } from "../types/finance";
 import { actionPlanService } from "../services/actionPlanService";
 import { cardService } from "../services/cardService";
 import { debtService } from "../services/debtService";
 import { goalService } from "../services/goalService";
+import { categoryService } from "../services/categoryService";
 import { installmentService } from "../services/installmentService";
 import { investmentService } from "../services/investmentService";
 import { invoiceService } from "../services/invoiceService";
@@ -17,7 +21,10 @@ interface WorkspaceState {
   data: FinancialWorkspace | null;
 }
 
-export function useFinancialWorkspace(userId: string | undefined, competence: string) {
+export function useFinancialWorkspace(
+  userId: string | undefined,
+  competence: string,
+) {
   const [state, setState] = useState<WorkspaceState>({
     loading: Boolean(userId),
     error: null,
@@ -29,8 +36,9 @@ export function useFinancialWorkspace(userId: string | undefined, competence: st
 
   const createProfile = useCallback(
     async (profile: Omit<FinancialProfile, "id">) => {
-      if (!userId) throw new Error("Usuário não autenticado");
+      if (!userId) throw new Error("Usuario nao autenticado");
       await profileService.create(userId, profile);
+      await categoryService.restoreDefaults(userId);
       refresh();
     },
     [refresh, userId],
@@ -65,6 +73,7 @@ export function useFinancialWorkspace(userId: string | undefined, competence: st
           currentInvestments,
           currentGoals,
           currentActions,
+          currentCategories,
         ] = await Promise.all([
           transactionService.listByCompetence(currentUserId, competence),
           cardService.listWithMetrics(currentUserId, competence),
@@ -74,6 +83,7 @@ export function useFinancialWorkspace(userId: string | undefined, competence: st
           investmentService.list(currentUserId),
           goalService.list(currentUserId),
           actionPlanService.list(currentUserId),
+          categoryService.list(currentUserId),
         ]);
 
         const summary = buildFinancialSummary(
@@ -85,7 +95,10 @@ export function useFinancialWorkspace(userId: string | undefined, competence: st
           competence,
           currentInvoices,
         );
-        const fallbackActions = currentActions.length > 0 ? currentActions : buildRuleBasedActions(summary);
+        const fallbackActions =
+          currentActions.length > 0
+            ? currentActions
+            : buildRuleBasedActions(summary);
 
         if (!cancelled) {
           setState({
@@ -101,6 +114,7 @@ export function useFinancialWorkspace(userId: string | undefined, competence: st
               investments: currentInvestments,
               goals: currentGoals,
               actions: fallbackActions,
+              categories: currentCategories,
             },
           });
         }
@@ -108,7 +122,10 @@ export function useFinancialWorkspace(userId: string | undefined, competence: st
         if (!cancelled) {
           setState({
             loading: false,
-            error: error instanceof Error ? error.message : "Erro ao carregar dados financeiros",
+            error:
+              error instanceof Error
+                ? error.message
+                : "Erro ao carregar dados financeiros",
             data: null,
           });
         }

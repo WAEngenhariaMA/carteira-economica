@@ -152,7 +152,17 @@ function buildFutureCommitments({
     const cardInvoices = isSelectedCompetence
       ? currentCardInvoices
       : sum(cards.map((card) => card.futureInstallments[index] ?? 0));
-    const nonInvoicedCardInstallments = 0;
+    const scheduledCardInstallments = sum(
+      installments
+        .filter(
+          (installment) =>
+            installment.competence === competence
+            && !isLoanInstallment(installment)
+            && (isSelectedCompetence || installment.status !== "paid"),
+        )
+        .map((installment) => installment.amount),
+    );
+    const nonInvoicedCardInstallments = cardInvoices > 0 ? 0 : scheduledCardInstallments;
     const loanInstallments = sum(
       installments
         .filter(
@@ -183,7 +193,7 @@ function buildFutureCommitments({
       openVariableExpenses,
       variableExpenses,
       cardInvoices,
-      cardInstallments: cardInvoices,
+      cardInstallments: scheduledCardInstallments,
       nonInvoicedCardInstallments,
       fixedExpenses,
       debts: debtPayments,

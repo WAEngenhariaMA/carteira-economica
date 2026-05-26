@@ -2,6 +2,7 @@ import type {
   ActionItem,
   Card,
   Debt,
+  FinancialCategory,
   FinancialProfile,
   Goal,
   Installment,
@@ -9,6 +10,52 @@ import type {
   Invoice,
   Transaction,
 } from "../types/finance";
+
+export function mapCategory(row: any): FinancialCategory {
+  const rawKeywords = row.keywords;
+
+  const keywords = Array.isArray(rawKeywords)
+    ? rawKeywords.map(String)
+    : typeof rawKeywords === "string" && rawKeywords.length > 0
+      ? rawKeywords
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean)
+      : [];
+
+  return {
+    id: row.id,
+    name: row.name,
+    type: row.category_type ?? row.type ?? "expense",
+    essentiality: row.default_essentiality ?? row.essentiality ?? "important",
+    parentId: row.parent_id ?? undefined,
+    parentName: row.parent_name ?? undefined,
+    color: row.color ?? "#0f766e",
+    icon: row.icon ?? "Circle",
+    monthlyLimit: Number(row.monthly_limit ?? 0),
+    keywords,
+    isDefault: Boolean(row.is_default),
+    isActive: row.is_active ?? true,
+  };
+}
+
+export function categoryToRow(
+  category: Omit<FinancialCategory, "id"> | Partial<FinancialCategory>,
+) {
+  return withoutUndefined({
+    name: category.name,
+    category_type: category.type,
+    default_essentiality: category.essentiality,
+    parent_id: category.parentId ?? null,
+    parent_name: category.parentName ?? null,
+    color: category.color,
+    icon: category.icon,
+    monthly_limit: category.monthlyLimit,
+    keywords: category.keywords ?? [],
+    is_default: category.isDefault,
+    is_active: category.isActive,
+  });
+}
 
 export function mapProfile(row: any): FinancialProfile {
   return {
@@ -25,7 +72,9 @@ export function mapProfile(row: any): FinancialProfile {
 }
 
 function withoutUndefined<T extends Record<string, unknown>>(value: T) {
-  return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined));
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entry]) => entry !== undefined),
+  );
 }
 
 export function profileToRow(profile: Partial<Omit<FinancialProfile, "id">>) {
@@ -66,7 +115,9 @@ export function mapTransaction(row: any): Transaction {
   };
 }
 
-export function transactionToRow(transaction: Omit<Transaction, "id"> | Partial<Transaction>) {
+export function transactionToRow(
+  transaction: Omit<Transaction, "id"> | Partial<Transaction>,
+) {
   return withoutUndefined({
     transaction_date: transaction.date,
     competence: transaction.competence,
@@ -80,9 +131,15 @@ export function transactionToRow(transaction: Omit<Transaction, "id"> | Partial<
     fixed: transaction.fixed,
     payment_rail: transaction.paymentRail,
     bank: transaction.bank,
-    card_id: "cardId" in transaction ? transaction.cardId ?? null : undefined,
-    installment: "installment" in transaction ? transaction.installment ?? null : undefined,
-    total_installments: "totalInstallments" in transaction ? transaction.totalInstallments ?? null : undefined,
+    card_id: "cardId" in transaction ? (transaction.cardId ?? null) : undefined,
+    installment:
+      "installment" in transaction
+        ? (transaction.installment ?? null)
+        : undefined,
+    total_installments:
+      "totalInstallments" in transaction
+        ? (transaction.totalInstallments ?? null)
+        : undefined,
     status: transaction.status,
     priority: transaction.priority,
     impact: transaction.impact,
@@ -90,7 +147,12 @@ export function transactionToRow(transaction: Omit<Transaction, "id"> | Partial<
   });
 }
 
-export function mapCard(row: any, currentInvoice = 0, previousInvoice = 0, futureInstallments: number[] = []): Card {
+export function mapCard(
+  row: any,
+  currentInvoice = 0,
+  previousInvoice = 0,
+  futureInstallments: number[] = [],
+): Card {
   return {
     id: row.id,
     name: row.name,
@@ -105,7 +167,14 @@ export function mapCard(row: any, currentInvoice = 0, previousInvoice = 0, futur
   };
 }
 
-export function cardToRow(card: Omit<Card, "id" | "currentInvoice" | "previousInvoice" | "futureInstallments"> | Partial<Card>) {
+export function cardToRow(
+  card:
+    | Omit<
+        Card,
+        "id" | "currentInvoice" | "previousInvoice" | "futureInstallments"
+      >
+    | Partial<Card>,
+) {
   return withoutUndefined({
     name: card.name,
     bank: card.bank,
@@ -134,7 +203,8 @@ export function invoiceToRow(invoice: Omit<Invoice, "id"> | Partial<Invoice>) {
     card_id: invoice.cardId,
     competence: invoice.competence,
     due_date: invoice.dueDate,
-    closing_date: "closingDate" in invoice ? invoice.closingDate ?? null : undefined,
+    closing_date:
+      "closingDate" in invoice ? (invoice.closingDate ?? null) : undefined,
     total_amount: invoice.totalAmount,
     paid_amount: invoice.paidAmount,
     status: invoice.status,
@@ -153,8 +223,14 @@ export function mapInstallment(row: any): Installment {
     description: row.description ?? undefined,
     category: row.category ?? undefined,
     purchaseDate: row.purchase_date ?? undefined,
-    totalAmount: row.total_amount !== undefined && row.total_amount !== null ? Number(row.total_amount) : undefined,
-    downPayment: row.down_payment !== undefined && row.down_payment !== null ? Number(row.down_payment) : undefined,
+    totalAmount:
+      row.total_amount !== undefined && row.total_amount !== null
+        ? Number(row.total_amount)
+        : undefined,
+    downPayment:
+      row.down_payment !== undefined && row.down_payment !== null
+        ? Number(row.down_payment)
+        : undefined,
     competence: row.competence,
     installmentNumber: Number(row.installment_number ?? 1),
     totalInstallments: Number(row.total_installments ?? 1),
@@ -163,10 +239,15 @@ export function mapInstallment(row: any): Installment {
   };
 }
 
-export function installmentToRow(installment: Omit<Installment, "id"> | Partial<Installment>) {
+export function installmentToRow(
+  installment: Omit<Installment, "id"> | Partial<Installment>,
+) {
   return withoutUndefined({
-    transaction_id: "transactionId" in installment ? installment.transactionId ?? null : undefined,
-    card_id: "cardId" in installment ? installment.cardId ?? null : undefined,
+    transaction_id:
+      "transactionId" in installment
+        ? (installment.transactionId ?? null)
+        : undefined,
+    card_id: "cardId" in installment ? (installment.cardId ?? null) : undefined,
     installment_source: installment.source,
     creditor: installment.creditor,
     description: installment.description,
@@ -229,7 +310,9 @@ export function mapAction(row: any): ActionItem {
   };
 }
 
-export function actionToRow(action: Omit<ActionItem, "id"> | Partial<ActionItem>) {
+export function actionToRow(
+  action: Omit<ActionItem, "id"> | Partial<ActionItem>,
+) {
   return withoutUndefined({
     title: action.title,
     reason: action.reason,
