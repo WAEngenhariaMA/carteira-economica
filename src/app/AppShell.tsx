@@ -7,18 +7,22 @@ export function AppShell({
   activeScreen,
   competence,
   summary,
+  searchQuery,
   children,
   onScreenChange,
   onCompetenceChange,
+  onSearchChange,
   onReport,
   onLogout,
 }: {
   activeScreen: ScreenId;
   competence: string;
   summary: FinancialSummary;
+  searchQuery: string;
   children: React.ReactNode;
   onScreenChange: (screen: ScreenId) => void;
   onCompetenceChange: (competence: string) => void;
+  onSearchChange: (value: string) => void;
   onReport: () => void;
   onLogout: () => void;
 }) {
@@ -30,7 +34,9 @@ export function AppShell({
           activeScreen={activeScreen}
           competence={competence}
           summary={summary}
+          searchQuery={searchQuery}
           onCompetenceChange={onCompetenceChange}
+          onSearchChange={onSearchChange}
           onReport={onReport}
           onLogout={onLogout}
         />

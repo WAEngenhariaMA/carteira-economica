@@ -19,6 +19,9 @@ export function ActionForm({
     expectedSavings: initialValue ? formatNumberInput(initialValue.expectedSavings) : "",
     difficulty: initialValue?.difficulty ?? "media",
     status: initialValue?.status ?? "planned",
+    firstStep: initialValue?.firstStep ?? "",
+    scoreImpact: initialValue?.scoreImpact ? String(initialValue.scoreImpact) : "",
+    dependsOn: initialValue?.dependsOn ?? "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -31,6 +34,9 @@ export function ActionForm({
       expectedSavings: initialValue ? formatNumberInput(initialValue.expectedSavings) : "",
       difficulty: initialValue?.difficulty ?? "media",
       status: initialValue?.status ?? "planned",
+      firstStep: initialValue?.firstStep ?? "",
+      scoreImpact: initialValue?.scoreImpact ? String(initialValue.scoreImpact) : "",
+      dependsOn: initialValue?.dependsOn ?? "",
     });
   }, [initialValue]);
 
@@ -46,9 +52,12 @@ export function ActionForm({
         expectedSavings: Number(form.expectedSavings),
         difficulty: form.difficulty as ActionItem["difficulty"],
         status: form.status as ActionItem["status"],
+        firstStep: form.firstStep,
+        scoreImpact: Number(form.scoreImpact || 0),
+        dependsOn: form.dependsOn,
       });
       if (!initialValue) {
-        setForm({ title: "", reason: "", priority: "high", horizon: "30 dias", expectedSavings: "", difficulty: "media", status: "planned" });
+        setForm({ title: "", reason: "", priority: "high", horizon: "30 dias", expectedSavings: "", difficulty: "media", status: "planned", firstStep: "", scoreImpact: "", dependsOn: "" });
       }
     } finally {
       setSaving(false);
@@ -77,6 +86,7 @@ export function ActionForm({
       <label>
         Prazo
         <select value={form.horizon} onChange={(event) => setForm({ ...form, horizon: event.target.value as ActionItem["horizon"] })}>
+          <option value="Hoje">Hoje</option>
           <option value="7 dias">7 dias</option>
           <option value="30 dias">30 dias</option>
           <option value="60 dias">60 dias</option>
@@ -110,6 +120,18 @@ export function ActionForm({
           <option value="running">Em andamento</option>
           <option value="done">Concluída</option>
         </select>
+      </label>
+      <label>
+        Primeiro passo
+        <input value={form.firstStep} onChange={(event) => setForm({ ...form, firstStep: event.target.value })} placeholder="Ex.: revisar vencimentos" />
+      </label>
+      <label>
+        Impacto no score
+        <input value={form.scoreImpact} type="number" min="0" step="1" onChange={(event) => setForm({ ...form, scoreImpact: event.target.value })} placeholder="Opcional" />
+      </label>
+      <label>
+        Depende de
+        <input value={form.dependsOn} onChange={(event) => setForm({ ...form, dependsOn: event.target.value })} placeholder="Opcional" />
       </label>
       <div className="form-actions">
         <button className="primary-button" type="submit" disabled={saving}>

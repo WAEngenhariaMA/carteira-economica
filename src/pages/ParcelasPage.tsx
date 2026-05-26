@@ -4,13 +4,19 @@ import { InstallmentEditForm } from "../components/forms/InstallmentEditForm";
 import { InstallmentPurchaseForm } from "../components/forms/InstallmentPurchaseForm";
 import { EmptyState, Panel, StatusPill } from "../components/ui/FinanceUI";
 import { formatMoney, formatPercent } from "../lib/formatters";
+import { matchesInstallmentSearch } from "../lib/searchFilters";
 import { installmentService } from "../services/installmentService";
 import type { WorkspacePageProps } from "../app/routes";
 import type { Installment } from "../types/finance";
 
-export function ParcelasPage({ userId, competence, workspace, summary, refresh }: WorkspacePageProps) {
+export function ParcelasPage({ userId, competence, workspace, summary, searchQuery, refresh }: WorkspacePageProps) {
   const [editing, setEditing] = useState<Installment | null>(null);
-  const sortedInstallments = [...workspace.installments].sort(
+  const sortedInstallments = workspace.installments
+    .filter((installment) => {
+      const card = workspace.cards.find((item) => item.id === installment.cardId);
+      return matchesInstallmentSearch(installment, card, searchQuery);
+    })
+    .sort(
     (a, b) => a.competence.localeCompare(b.competence) || a.installmentNumber - b.installmentNumber,
   );
   const currentInstallments = sortedInstallments.filter((installment) => installment.competence === competence);

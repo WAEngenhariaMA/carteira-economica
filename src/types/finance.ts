@@ -22,6 +22,19 @@ export type RiskLevel =
 export type ActionStatus = "planned" | "running" | "done";
 export type ActionPriority = "urgent" | "high" | "medium" | "low";
 export type InstallmentSource = "card" | "loan";
+export type FinancialSituation =
+  | "healthy"
+  | "tight"
+  | "indebted"
+  | "reorganizing"
+  | "investing";
+export type MainFinancialObjective =
+  | "pay_debts"
+  | "organize_spending"
+  | "build_reserve"
+  | "invest"
+  | "buy_asset"
+  | "reduce_cards";
 export type ScreenId =
   | "dashboard"
   | "receitas"
@@ -62,7 +75,10 @@ export interface FinancialProfile {
   reserveTarget: number;
   idealIncome: number;
   riskTolerance: "low" | "medium" | "high";
-  preferredRule: "50-30-20" | "60-25-15" | "70-10-20";
+  preferredRule: "50-30-20" | "60-25-15" | "70-10-20" | "80-5-15";
+  currentSituation: FinancialSituation;
+  mainObjective: MainFinancialObjective;
+  reserveMonthsDesired: 3 | 6 | 12;
 }
 
 export interface Transaction {
@@ -180,6 +196,14 @@ export interface AlertItem {
   message: string;
   level: Exclude<RiskLevel, "excellent" | "healthy">;
   source: "cashflow" | "card" | "installments" | "budget" | "data";
+  category?: string;
+  simpleExplanation?: string;
+  ignoredRisk?: string;
+  recommendedAction?: string;
+  suggestedDeadline?: "today" | "sevenDays" | "thirtyDays" | "ninetyDays";
+  estimatedImpact?: number;
+  diagnosticId?: string;
+  actionId?: string;
 }
 
 export interface ActionItem {
@@ -187,10 +211,14 @@ export interface ActionItem {
   title: string;
   reason: string;
   priority: ActionPriority;
-  horizon: "7 dias" | "30 dias" | "60 dias" | "90 dias";
+  horizon: "Hoje" | "7 dias" | "30 dias" | "60 dias" | "90 dias";
   expectedSavings: number;
   difficulty: "baixa" | "media" | "alta";
   status: ActionStatus;
+  firstStep?: string;
+  scoreImpact?: number;
+  dependsOn?: string;
+  diagnosticId?: string;
 }
 
 export interface DiagnosticFinding {
@@ -199,6 +227,15 @@ export interface DiagnosticFinding {
   description: string;
   severity: Exclude<RiskLevel, "excellent" | "healthy">;
   metric: string;
+  category: string;
+  currentValue: number;
+  recommendedValue: number;
+  deviation: number;
+  meaning: string;
+  risk: string;
+  recommendedAction: string;
+  deadline: "today" | "sevenDays" | "thirtyDays" | "ninetyDays";
+  estimatedImpact: number;
 }
 
 export interface ImportBatch {
@@ -217,6 +254,10 @@ export interface DataQualityIssue {
   field: string;
   message: string;
   severity: "warning" | "error";
+  id?: string;
+  source?: "profile" | "transaction" | "invoice" | "installment" | "card" | "category" | "debt";
+  entityId?: string;
+  impact?: string;
 }
 
 export interface FinancialWorkspace {
@@ -261,6 +302,39 @@ export interface BudgetRule {
   wants: number;
   reserveOrDebt: number;
   label: string;
+  explanation: string;
+}
+
+export interface ScoreFactor {
+  id: string;
+  label: string;
+  points: number;
+  currentValue: number;
+  recommendedValue: number;
+  explanation: string;
+}
+
+export interface ReserveTargets {
+  essentialMonthlyCost: number;
+  minimum: number;
+  comfortable: number;
+  robust: number;
+  selectedMonths: 3 | 6 | 12;
+  selectedTarget: number;
+  explanation: string;
+  hasEnoughData: boolean;
+}
+
+export interface IdealIncomeCalculation {
+  amount: number;
+  explanation: string;
+  hasEnoughData: boolean;
+}
+
+export interface FinancialHighlight {
+  label: string;
+  value: string;
+  amount: number;
 }
 
 export interface FinancialSummary {
@@ -290,14 +364,33 @@ export interface FinancialSummary {
   committedIncomeRatio: number;
   cardIncomeRatio: number;
   debtRatio: number;
+  essentialExpenseRatio: number;
+  variableExpenseRatio: number;
+  reserveDebtInvestmentRatio: number;
+  cardWeightRatio: number;
+  monthsCommittedCount: number;
   savingsCapacity: number;
   potentialSavings: number;
   dailyAverageSpend: number;
   weeklyAverageSpend: number;
+  safeDailySpend: number;
+  safeWeeklySpend: number;
+  moneyLastsDays: number;
+  urgentAmount: number;
   freeUntilMonthEnd: number;
   healthScore: number;
+  scoreFactors: ScoreFactor[];
   riskLevel: RiskLevel;
   financialStatus: string;
   adaptiveBudget: BudgetRule;
   futureCommitments: MonthlyCommitment[];
+  topCardRisk?: FinancialHighlight;
+  topCategory?: FinancialHighlight;
+  biggestLeak?: FinancialHighlight;
+  mostHarmfulExpense?: FinancialHighlight;
+  reserveTargets: ReserveTargets;
+  automaticIdealIncome: IdealIncomeCalculation;
+  dataQualityIssues: DataQualityIssue[];
+  dataQualityScore: number;
+  dataReliabilityLabel: string;
 }

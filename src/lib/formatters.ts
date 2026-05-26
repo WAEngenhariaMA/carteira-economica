@@ -105,6 +105,7 @@ export function essentialityLabel(value: string) {
   const labels: Record<string, string> = {
     essential: "Essencial",
     important: "Importante",
+    adjustable: "Ajustável",
     superfluous: "Supérfluo",
     impulsive: "Impulsivo",
   };

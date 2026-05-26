@@ -27,8 +27,8 @@ export function ImportadorPage({ userId, workspace, refresh }: WorkspacePageProp
 
   const validatedRows: ValidatedImportRow[] = useMemo(() => {
     if (!preview) return [];
-    return validateImportPreview(preview, mapping, workspace.transactions);
-  }, [mapping, preview, workspace.transactions]);
+    return validateImportPreview(preview, mapping, workspace.transactions, workspace.categories);
+  }, [mapping, preview, workspace.categories, workspace.transactions]);
 
   const errorCount = validatedRows.reduce(
     (total, row) => total + row.issues.filter((issue) => issue.severity === "error").length,

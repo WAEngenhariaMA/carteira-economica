@@ -15,10 +15,12 @@ export interface FinancialTermExplanation {
 }
 
 export interface HorizonPlanItem {
-  horizon: "7 dias" | "30 dias" | "90 dias";
+  horizon: "Hoje" | "7 dias" | "30 dias" | "90 dias";
   title: string;
   description: string;
+  firstStep: string;
   expectedImpact: number;
+  scoreImpact: number;
 }
 
 export interface PriorityActionExplanation {
@@ -36,6 +38,7 @@ export interface TechnicalDiagnosisLine {
 export interface FinancialExplanation {
   simpleMonthSummary: string;
   scoreExplanation: string;
+  scoreDroppedReasons: string[];
   commitmentExplanation: string;
   balanceExplanation: string;
   cardsExplanation: string;
@@ -47,6 +50,7 @@ export interface FinancialExplanation {
   executiveDiagnosis: string;
   technicalDiagnosis: TechnicalDiagnosisLine[];
   glossary: FinancialTermExplanation[];
+  plainLanguageConclusion: string;
 }
 
 interface FinancialExplanationInput {
@@ -114,19 +118,21 @@ function buildSimpleMonthSummary(summary: FinancialSummary) {
 }
 
 function buildScoreExplanation(summary: FinancialSummary) {
-  const reasons: string[] = [];
-
-  if (summary.committedIncomeRatio > 0.7) reasons.push("a renda está muito comprometida");
-  if (summary.cardIncomeRatio > 0.3) reasons.push("os cartões passaram do limite saudável");
-  if (summary.projectedBalance < 0) reasons.push("o saldo previsto está negativo");
-  if (summary.cashShortfall > 0) reasons.push("há contas abertas sem cobertura pelo caixa já realizado");
-  if (summary.futureInstallmentsTotal > summary.income * 0.5 && summary.income > 0) reasons.push("as parcelas futuras mantêm pressão nos próximos meses");
+  const reasons = buildScoreDroppedReasons(summary).map((reason) => reason.toLowerCase());
 
   if (reasons.length === 0) {
     return `Sua nota é ${summary.healthScore}/100 porque o fluxo mensal está sob controle e os principais riscos não passaram dos limites técnicos.`;
   }
 
   return `Sua nota é ${summary.healthScore}/100 porque ${reasons.join(", ")}. Quanto mais esses pontos forem reduzidos, mais rápido o score melhora.`;
+}
+
+function buildScoreDroppedReasons(summary: FinancialSummary) {
+  if (summary.scoreFactors.length > 0) {
+    return summary.scoreFactors.map((factor) => `${factor.label}: ${factor.points} pontos`);
+  }
+
+  return ["Nenhuma penalidade relevante encontrada no motor de regras."];
 }
 
 function buildCommitmentExplanation(summary: FinancialSummary) {
@@ -255,18 +261,36 @@ function buildHorizonPlan(summary: FinancialSummary) {
 
   return [
     {
+      horizon: "Hoje" as const,
+      title: summary.urgentAmount > 0 ? "Resolver o valor sem cobertura" : "Proteger o controle do dia",
+      description: summary.urgentAmount > 0
+        ? "Antes de qualquer nova compra, descubra de onde virá a cobertura do valor faltante: corte, adiamento, renegociação ou entrada confirmada."
+        : "Manter o dia sem novas parcelas e revisar se todos os lançamentos do mês estão cadastrados.",
+      firstStep: summary.urgentAmount > 0
+        ? "Anotar o valor faltante e separar as contas que vencem primeiro."
+        : "Conferir receitas, despesas, faturas e parcelas do mês selecionado.",
+      expectedImpact: summary.urgentAmount,
+      scoreImpact: summary.urgentAmount > 0 ? 12 : 3,
+    },
+    {
       horizon: "7 dias" as const,
       title: summary.cashShortfall > 0 ? "Proteger o caixa imediato" : "Definir teto de gasto da semana",
       description: summary.cashShortfall > 0
         ? "Liste vencimentos, pague essenciais primeiro, renegocie o que puder gerar juros e pare novas parcelas até o mês fechar."
         : "Separe um limite semanal para gastos variáveis e acompanhe diariamente até a próxima competência.",
+      firstStep: summary.cashShortfall > 0
+        ? "Montar ordem de pagamento por vencimento, juros e essencialidade."
+        : "Definir o valor semanal seguro no painel e acompanhar gastos variáveis.",
       expectedImpact: immediateImpact,
+      scoreImpact: summary.cashShortfall > 0 ? 10 : 4,
     },
     {
       horizon: "30 dias" as const,
       title: "Reduzir compromissos recorrentes",
       description: "Cancelar ou renegociar assinaturas, delivery, compras por impulso, tarifas e faturas mais pesadas.",
+      firstStep: "Ordenar categorias e subcategorias por valor; começar pelo maior gasto ajustável.",
       expectedImpact: monthlyAdjustment,
+      scoreImpact: 7,
     },
     {
       horizon: "90 dias" as const,
@@ -274,13 +298,21 @@ function buildHorizonPlan(summary: FinancialSummary) {
       description: summary.projectedBalance < 0
         ? "Repetir o corte mensal, evitar parcelamentos novos e direcionar qualquer sobra para dívidas ou faturas críticas."
         : "Automatizar uma reserva inicial e revisar o orçamento por categoria todo mês.",
+      firstStep: summary.projectedBalance < 0
+        ? "Definir uma meta mensal de redução até o saldo ficar positivo."
+        : "Escolher reserva mínima de 3 meses e automatizar o primeiro aporte.",
       expectedImpact: reserveStart,
+      scoreImpact: 8,
     },
   ];
 }
 
 function buildPlainLanguageAlerts(alerts: AlertItem[], summary: FinancialSummary) {
-  const plainAlerts = alerts.map((alert) => `${riskLabel(alert.level)}: ${alert.title}. ${alert.message}`);
+  const plainAlerts = alerts.map((alert) => {
+    const action = alert.recommendedAction ? ` Ação recomendada: ${alert.recommendedAction}` : "";
+    const risk = alert.ignoredRisk ? ` Se ignorar: ${alert.ignoredRisk}` : "";
+    return `${riskLabel(alert.level)}: ${alert.title}. ${alert.simpleExplanation ?? alert.message}${risk}${action}`;
+  });
 
   if (summary.projectedBalance < 0) {
     plainAlerts.unshift(`O mês não fecha sozinho: falta ${formatMoney(Math.abs(summary.projectedBalance))} para cobrir todos os compromissos previstos.`);
@@ -316,6 +348,10 @@ function buildScoreSuggestions(summary: FinancialSummary) {
 
   if (suggestions.length === 0) {
     suggestions.push("Manter gastos variáveis dentro do teto semanal e aumentar a reserva mensal gradualmente.");
+  }
+
+  if (summary.dataQualityIssues.length > 0) {
+    suggestions.push("Corrigir dados incompletos para aumentar a confiança do diagnóstico e evitar decisão com número distorcido.");
   }
 
   return suggestions;
@@ -358,6 +394,26 @@ function buildTechnicalDiagnosis(summary: FinancialSummary, debts: Debt[]) {
       interpretation: "Mostra a pressão que já foi empurrada para os próximos meses.",
     },
     {
+      label: "Gasto diário seguro",
+      value: formatMoney(summary.safeDailySpend),
+      interpretation: "Mostra quanto pode gastar por dia sem piorar o saldo previsto do mês.",
+    },
+    {
+      label: "Reserva recomendada",
+      value: formatMoney(summary.reserveTargets.selectedTarget),
+      interpretation: summary.reserveTargets.explanation,
+    },
+    {
+      label: "Renda ideal automática",
+      value: formatMoney(summary.automaticIdealIncome.amount),
+      interpretation: summary.automaticIdealIncome.explanation,
+    },
+    {
+      label: "Confiabilidade dos dados",
+      value: `${summary.dataQualityScore}/100`,
+      interpretation: summary.dataReliabilityLabel,
+    },
+    {
       label: "Dívida de maior atenção",
       value: highInterestDebt ? highInterestDebt.creditor : "Sem dívida crítica cadastrada",
       interpretation: highInterestDebt
@@ -365,6 +421,18 @@ function buildTechnicalDiagnosis(summary: FinancialSummary, debts: Debt[]) {
         : "Nenhuma dívida com juros muito alto foi encontrada na base atual.",
     },
   ];
+}
+
+function buildPlainLanguageConclusion(summary: FinancialSummary) {
+  if (summary.projectedBalance < 0) {
+    return `Conclusão: o mês não fecha sozinho. A primeira decisão deve ser resolver ${formatMoney(Math.abs(summary.projectedBalance))}, evitando novas parcelas e priorizando contas essenciais, faturas críticas e dívidas com juros.`;
+  }
+
+  if (summary.riskLevel === "attention" || summary.riskLevel === "risk") {
+    return "Conclusão: o mês ainda pode fechar, mas a margem está apertada. O caminho mais seguro é controlar gasto semanal, evitar cartão e reforçar reserva antes de ampliar consumo.";
+  }
+
+  return "Conclusão: a situação está administrável. Mantenha rotina de revisão, preserve a sobra e direcione parte do caixa para reserva, dívida estratégica ou objetivo principal.";
 }
 
 function buildGlossary() {
@@ -402,6 +470,7 @@ export function buildFinancialExplanation(input: FinancialExplanationInput): Fin
   return {
     simpleMonthSummary: buildSimpleMonthSummary(summary),
     scoreExplanation: buildScoreExplanation(summary),
+    scoreDroppedReasons: buildScoreDroppedReasons(summary),
     commitmentExplanation: buildCommitmentExplanation(summary),
     balanceExplanation: buildBalanceExplanation(summary),
     cardsExplanation: buildCardsExplanation(summary, cards),
@@ -413,5 +482,6 @@ export function buildFinancialExplanation(input: FinancialExplanationInput): Fin
     executiveDiagnosis: buildExecutiveDiagnosis(summary, diagnostics),
     technicalDiagnosis: buildTechnicalDiagnosis(summary, debts),
     glossary: buildGlossary(),
+    plainLanguageConclusion: buildPlainLanguageConclusion(summary),
   };
 }

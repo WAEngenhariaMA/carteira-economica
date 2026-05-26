@@ -4,18 +4,20 @@ import { CardForm } from "../components/forms/CardForm";
 import { chartOptions } from "../components/charts/chartConfig";
 import { IconBadge, Panel, RiskPill } from "../components/ui/FinanceUI";
 import { formatMoney, formatPercent } from "../lib/formatters";
+import { matchesCardSearch } from "../lib/searchFilters";
 import { cardService } from "../services/cardService";
 import type { WorkspacePageProps } from "../app/routes";
 import type { Card } from "../types/finance";
 import { CreditCard, Pencil, Trash2 } from "lucide-react";
 
-export function CartoesPage({ userId, competence, workspace, refresh }: WorkspacePageProps) {
+export function CartoesPage({ userId, competence, workspace, searchQuery, refresh }: WorkspacePageProps) {
   const [editing, setEditing] = useState<Card | null>(null);
+  const filteredCards = workspace.cards.filter((card) => matchesCardSearch(card, searchQuery));
   const invoiceChart = {
-    labels: workspace.cards.map((card) => card.bank),
+    labels: filteredCards.map((card) => card.bank),
     datasets: [
-      { label: "Fatura atual", data: workspace.cards.map((card) => card.currentInvoice), backgroundColor: "#0f766e", borderRadius: 6 },
-      { label: "Fatura anterior", data: workspace.cards.map((card) => card.previousInvoice), backgroundColor: "#94a3b8", borderRadius: 6 },
+      { label: "Fatura atual", data: filteredCards.map((card) => card.currentInvoice), backgroundColor: "#0f766e", borderRadius: 6 },
+      { label: "Fatura anterior", data: filteredCards.map((card) => card.previousInvoice), backgroundColor: "#94a3b8", borderRadius: 6 },
     ],
   };
 
@@ -39,7 +41,7 @@ export function CartoesPage({ userId, competence, workspace, refresh }: Workspac
       <div className="dashboard-grid">
         <Panel title="Análise por Cartão">
           <div className="card-list">
-            {workspace.cards.map((card) => {
+            {filteredCards.map((card) => {
               const ratio = card.limit > 0 ? card.currentInvoice / card.limit : 0;
               return (
                 <article className="credit-row" key={card.id}>
@@ -99,7 +101,7 @@ export function CartoesPage({ userId, competence, workspace, refresh }: Workspac
               </tr>
             </thead>
             <tbody>
-              {workspace.cards.map((card) => {
+              {filteredCards.map((card) => {
                 const ratio = card.limit > 0 ? card.currentInvoice / card.limit : 0;
                 const futureInstallments = card.futureInstallments.slice(1).reduce((acc, value) => acc + value, 0);
                 return (

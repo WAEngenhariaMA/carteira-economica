@@ -1,5 +1,6 @@
-import { Brain, Database, Landmark, LockKeyhole, PieChart } from "lucide-react";
+import { Database, Landmark, LockKeyhole, PieChart } from "lucide-react";
 import { ProfileFinancialSettingsForm } from "../components/forms/ProfileFinancialSettingsForm";
+import { AiSettingsPanel } from "../components/settings/AiSettingsPanel";
 import { CategoryManager } from "../components/settings/CategoryManager";
 import { IconBadge, Panel } from "../components/ui/FinanceUI";
 import { profileService } from "../services/profileService";
@@ -50,6 +51,10 @@ export function ConfiguracoesPage({
         />
       </Panel>
 
+      <Panel title="Inteligência Artificial">
+        <AiSettingsPanel />
+      </Panel>
+
       <div className="dashboard-grid">
         <Panel title="Infraestrutura">
           <div className="config-list">
@@ -76,20 +81,23 @@ export function ConfiguracoesPage({
           </div>
         </Panel>
 
-        <Panel title="Próximas Funções IA">
-          <div className="roadmap-list">
-            <span>
-              <Brain size={16} /> classify-transaction
-            </span>
-            <span>
-              <Brain size={16} /> generate-diagnostic
-            </span>
-            <span>
-              <Brain size={16} /> generate-action-plan
-            </span>
-            <span>
-              <Brain size={16} /> generate-report-text
-            </span>
+        <Panel title="Cálculos Automáticos">
+          <div className="config-list">
+            <ConfigRow
+              icon={PieChart}
+              title="Meta de reserva"
+              value="Calculada pelo custo essencial mensal x meses desejados"
+            />
+            <ConfigRow
+              icon={Landmark}
+              title="Renda ideal"
+              value="Calculada pelo momento financeiro, faturas, dívidas e margem de recuperação"
+            />
+            <ConfigRow
+              icon={LockKeyhole}
+              title="Segurança"
+              value="Nenhuma chave secreta é usada no front-end"
+            />
           </div>
         </Panel>
       </div>

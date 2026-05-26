@@ -68,6 +68,9 @@ export function mapProfile(row: any): FinancialProfile {
     idealIncome: Number(row.ideal_income ?? 0),
     riskTolerance: row.risk_tolerance ?? "medium",
     preferredRule: row.preferred_rule ?? "70-10-20",
+    currentSituation: row.current_situation ?? "reorganizing",
+    mainObjective: row.main_objective ?? "organize_spending",
+    reserveMonthsDesired: Number(row.reserve_months_desired ?? 6) as FinancialProfile["reserveMonthsDesired"],
   };
 }
 
@@ -87,6 +90,9 @@ export function profileToRow(profile: Partial<Omit<FinancialProfile, "id">>) {
     ideal_income: profile.idealIncome,
     risk_tolerance: profile.riskTolerance,
     preferred_rule: profile.preferredRule,
+    current_situation: profile.currentSituation,
+    main_objective: profile.mainObjective,
+    reserve_months_desired: profile.reserveMonthsDesired,
   });
 }
 
@@ -307,6 +313,10 @@ export function mapAction(row: any): ActionItem {
     expectedSavings: Number(row.expected_savings ?? 0),
     difficulty: row.difficulty ?? "media",
     status: row.status ?? "planned",
+    firstStep: row.first_step ?? undefined,
+    scoreImpact: row.score_impact !== undefined && row.score_impact !== null ? Number(row.score_impact) : undefined,
+    dependsOn: row.depends_on ?? undefined,
+    diagnosticId: row.diagnostic_id ?? undefined,
   };
 }
 
@@ -321,5 +331,9 @@ export function actionToRow(
     expected_savings: action.expectedSavings,
     difficulty: action.difficulty,
     status: action.status,
+    first_step: action.firstStep,
+    score_impact: action.scoreImpact,
+    depends_on: action.dependsOn,
+    diagnostic_id: action.diagnosticId,
   });
 }

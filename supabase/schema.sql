@@ -17,9 +17,17 @@ create table if not exists public.financial_profiles (
   ideal_income numeric(14,2) not null default 0,
   risk_tolerance text not null default 'medium',
   preferred_rule text not null default '70-10-20',
+  current_situation text not null default 'reorganizing',
+  main_objective text not null default 'organize_spending',
+  reserve_months_desired int not null default 6,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.financial_profiles
+  add column if not exists current_situation text not null default 'reorganizing',
+  add column if not exists main_objective text not null default 'organize_spending',
+  add column if not exists reserve_months_desired int not null default 6;
 
 create table if not exists public.categories (
   id uuid primary key default uuid_generate_v4(),
@@ -188,11 +196,21 @@ create table if not exists public.action_plans (
   expected_savings numeric(14,2) not null default 0,
   difficulty text not null default 'media',
   status action_status_type not null default 'planned',
+  first_step text,
+  score_impact int not null default 0,
+  depends_on text,
+  diagnostic_id text,
   start_date date,
   due_date date,
   completed_at timestamptz,
   created_at timestamptz not null default now()
 );
+
+alter table public.action_plans
+  add column if not exists first_step text,
+  add column if not exists score_impact int not null default 0,
+  add column if not exists depends_on text,
+  add column if not exists diagnostic_id text;
 
 create table if not exists public.simulations (
   id uuid primary key default uuid_generate_v4(),

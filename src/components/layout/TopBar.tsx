@@ -13,14 +13,18 @@ export function TopBar({
   activeScreen,
   competence,
   summary,
+  searchQuery,
   onCompetenceChange,
+  onSearchChange,
   onReport,
   onLogout,
 }: {
   activeScreen: ScreenId;
   competence: string;
   summary: FinancialSummary;
+  searchQuery: string;
   onCompetenceChange: (competence: string) => void;
+  onSearchChange: (value: string) => void;
   onReport: () => void;
   onLogout: () => void;
 }) {
@@ -37,7 +41,11 @@ export function TopBar({
       <div className="topbar-actions">
         <label className="searchbox">
           <Search size={17} />
-          <input placeholder="Buscar lançamentos, cartões, categorias" />
+          <input
+            value={searchQuery}
+            placeholder="Buscar lançamentos, cartões, categorias"
+            onChange={(event) => onSearchChange(event.target.value)}
+          />
         </label>
         <button className="ghost-button" type="button">
           <Filter size={17} />

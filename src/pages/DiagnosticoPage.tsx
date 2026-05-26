@@ -1,9 +1,12 @@
-import { AlertTriangle, BookOpen, Brain, ListChecks } from "lucide-react";
+import { useState } from "react";
+import { AlertTriangle, BookOpen, Brain, ListChecks, Sparkles } from "lucide-react";
 import { IconBadge, Panel, RiskPill } from "../components/ui/FinanceUI";
 import { buildAlerts, buildDiagnostics, buildRuleBasedActions } from "../lib/financeEngine";
 import { buildFinancialExplanation } from "../lib/financialExplainer";
 import { formatMoney, formatPercent } from "../lib/formatters";
+import { buildAggregatedDiagnosticInput, diagnosticAiService } from "../services/diagnosticAiService";
 import type { WorkspacePageProps } from "../app/routes";
+import type { ProviderGenerationResult } from "../lib/diagnostic/types";
 
 function BudgetBar({ label, ratio, amount }: { label: string; ratio: number; amount: number }) {
   return (
@@ -20,7 +23,18 @@ function BudgetBar({ label, ratio, amount }: { label: string; ratio: number; amo
   );
 }
 
-export function DiagnosticoPage({ workspace, summary }: WorkspacePageProps) {
+function formatFindingDeviation(metric: string, deviation: number) {
+  const normalized = metric.toLowerCase();
+  if (normalized.includes("comprometimento") || normalized.includes("cart") || normalized.includes("receb")) {
+    return formatPercent(deviation);
+  }
+
+  return formatMoney(deviation);
+}
+
+export function DiagnosticoPage({ userId, competence, workspace, summary }: WorkspacePageProps) {
+  const [intelligentDiagnosis, setIntelligentDiagnosis] = useState<ProviderGenerationResult | null>(null);
+  const [generatingDiagnosis, setGeneratingDiagnosis] = useState(false);
   const diagnostics = buildDiagnostics(summary, workspace.cards, workspace.debts);
   const alerts = buildAlerts(summary, workspace.cards);
   const suggestedActions = buildRuleBasedActions(summary);
@@ -32,9 +46,68 @@ export function DiagnosticoPage({ workspace, summary }: WorkspacePageProps) {
     actions: suggestedActions,
     alerts,
   });
+  const displayedDiagnosis = intelligentDiagnosis?.diagnosis;
+
+  async function handleGenerateDiagnosis() {
+    setGeneratingDiagnosis(true);
+    try {
+      const input = buildAggregatedDiagnosticInput({
+        competence,
+        summary,
+        findings: diagnostics,
+        actions: suggestedActions,
+        scoreDroppedReasons: explanation.scoreDroppedReasons,
+        scoreImprovementSuggestions: explanation.scoreImprovementSuggestions,
+      });
+      const result = await diagnosticAiService.generate(input, userId);
+      setIntelligentDiagnosis(result);
+    } finally {
+      setGeneratingDiagnosis(false);
+    }
+  }
 
   return (
     <div className="screen-stack">
+      <Panel
+        title="Diagnóstico Inteligente"
+        action={(
+          <button className="primary-button" type="button" onClick={handleGenerateDiagnosis} disabled={generatingDiagnosis}>
+            <Sparkles size={16} />
+            {generatingDiagnosis ? "Gerando..." : "Gerar diagnóstico com IA"}
+          </button>
+        )}
+      >
+        <div className="narrative-stack">
+          <div className="narrative-lead">
+            <IconBadge icon={Brain} tone={summary.projectedBalance < 0 ? "danger" : "good"} />
+            <p>{displayedDiagnosis?.simpleExplanation ?? explanation.simpleMonthSummary}</p>
+          </div>
+          <div className="ai-provider-strip">
+            <RiskPill
+              level={intelligentDiagnosis?.fallbackUsed ? "attention" : "healthy"}
+              label={intelligentDiagnosis ? `Provider usado: ${intelligentDiagnosis.providerLabel}` : "Provider usado: Regras puras"}
+            />
+            <span>
+              {intelligentDiagnosis
+                ? `Fallback: ${intelligentDiagnosis.fallbackUsed ? "Sim" : "Não"} | ${intelligentDiagnosis.latencyMs} ms`
+                : "Clique para tentar IA local/nuvem. Se falhar, as regras continuam funcionando."}
+            </span>
+          </div>
+          {displayedDiagnosis && (
+            <div className="narrative-grid">
+              <article className="narrative-card">
+                <strong>Causa raiz</strong>
+                <span>{displayedDiagnosis.rootCause}</span>
+              </article>
+              <article className="narrative-card">
+                <strong>Conclusão</strong>
+                <span>{displayedDiagnosis.plainLanguageConclusion}</span>
+              </article>
+            </div>
+          )}
+        </div>
+      </Panel>
+
       <div className="dashboard-grid">
         <Panel title="Regra Adaptativa">
           <div className="budget-bars">
@@ -47,7 +120,8 @@ export function DiagnosticoPage({ workspace, summary }: WorkspacePageProps) {
           <div className="score-copy">
             <RiskPill level={summary.riskLevel} />
             <h3>{summary.financialStatus}</h3>
-            <p>{explanation.executiveDiagnosis}</p>
+            <p>{displayedDiagnosis?.executiveSummary ?? explanation.executiveDiagnosis}</p>
+            <p>{summary.adaptiveBudget.explanation}</p>
             <div className="rule-row">
               <span>A receber</span>
               <strong>{formatPercent(summary.pendingIncomeRatio)}</strong>
@@ -134,8 +208,10 @@ export function DiagnosticoPage({ workspace, summary }: WorkspacePageProps) {
                 <RiskPill level={item.severity} />
               </div>
               <h3>{item.title}</h3>
-              <p>{item.description}</p>
-              <span>{item.metric}</span>
+              <p><strong>O que significa:</strong> {item.meaning}</p>
+              <p><strong>Por que é perigoso:</strong> {item.risk}</p>
+              <p><strong>O que fazer agora:</strong> {item.recommendedAction}</p>
+              <span>{item.metric} | Desvio {formatFindingDeviation(item.metric, item.deviation)}</span>
             </article>
           ))}
         </div>

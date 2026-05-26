@@ -36,8 +36,10 @@ export function AlertasPage({ workspace, summary }: WorkspacePageProps) {
             <div>
               <RiskPill level={alert.level} />
               <h3>{alert.title}</h3>
-              <p>{alert.message}</p>
-              <span>{alertSourceLabel(alert.source)}</span>
+              <p>{alert.simpleExplanation ?? alert.message}</p>
+              {alert.ignoredRisk && <p><strong>Risco se ignorar:</strong> {alert.ignoredRisk}</p>}
+              {alert.recommendedAction && <p><strong>Ação recomendada:</strong> {alert.recommendedAction}</p>}
+              <span>{alertSourceLabel(alert.source)} {alert.estimatedImpact ? `| impacto ${alert.estimatedImpact.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}` : ""}</span>
             </div>
           </article>
         ))}

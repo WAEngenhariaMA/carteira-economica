@@ -1,5 +1,5 @@
 import { getSupabase } from "../lib/supabase";
-import type { DataQualityIssue, Transaction } from "../types/finance";
+import type { DataQualityIssue, FinancialCategory, Transaction } from "../types/finance";
 import type { ImportPreview } from "../lib/importer";
 import { transactionService } from "./transactionService";
 
@@ -28,10 +28,47 @@ function normalizeDate(value: string) {
   return "";
 }
 
+function normalizeText(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function inferCategory(description: string, rawCategory: string, categories: FinancialCategory[]) {
+  const normalizedDescription = normalizeText(`${description} ${rawCategory}`);
+  const activeCategories = categories.filter((category) => category.isActive);
+  const match = activeCategories.find((category) =>
+    category.keywords.some((keyword) => normalizedDescription.includes(normalizeText(keyword))),
+  );
+
+  if (!match) {
+    return {
+      category: rawCategory || "Sem categoria",
+      subcategory: "",
+      essentiality: "important" as Transaction["essentiality"],
+    };
+  }
+
+  const parent = match.parentId
+    ? activeCategories.find((category) => category.id === match.parentId)
+    : match;
+
+  return {
+    category: parent?.name ?? match.name,
+    subcategory: match.parentId ? match.name : "",
+    essentiality: match.essentiality,
+  };
+}
+
 export function validateImportPreview(
   preview: ImportPreview,
   mapping: Record<string, string>,
   existing: Transaction[],
+  categories: FinancialCategory[] = [],
 ): ValidatedImportRow[] {
   const duplicates = new Set(
     existing.map((item) => `${item.date}|${item.description.toLowerCase()}|${item.amount}`),
@@ -41,10 +78,12 @@ export function validateImportPreview(
     const date = normalizeDate(readCell(row, mapping.date));
     const description = readCell(row, mapping.description);
     const amount = parseAmount(readCell(row, mapping.amount));
-    const category = readCell(row, mapping.category) || "Sem categoria";
+    const rawCategory = readCell(row, mapping.category);
     const bank = readCell(row, mapping.bank);
     const card = readCell(row, mapping.card);
     const competence = readCell(row, mapping.competence) || date.slice(0, 7);
+    const inferred = inferCategory(description, rawCategory, categories);
+    const category = inferred.category;
     const issues: DataQualityIssue[] = [];
 
     if (!date) issues.push({ rowIndex: index + 1, field: "date", message: "Data inválida ou ausente", severity: "error" });
@@ -61,8 +100,8 @@ export function validateImportPreview(
       amount: Math.abs(amount),
       type: amount < 0 ? "expense" : category.toLowerCase().includes("renda") ? "income" : "expense",
       category,
-      subcategory: "",
-      essentiality: "important",
+      subcategory: inferred.subcategory,
+      essentiality: inferred.essentiality,
       recurring: false,
       fixed: false,
       paymentRail: card ? "card" : "bank",

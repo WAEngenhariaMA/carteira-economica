@@ -55,6 +55,7 @@ function ProtectedApp() {
   const auth = useAuth();
   const [activeScreen, setActiveScreen] = useState<ScreenId>("dashboard");
   const [competence, setCompetence] = useState(currentCompetence());
+  const [searchQuery, setSearchQuery] = useState("");
   const workspaceState = useFinancialWorkspace(auth.user?.id, competence);
 
   const pageProps = useMemo(() => {
@@ -64,9 +65,10 @@ function ProtectedApp() {
       competence,
       workspace: workspaceState.data,
       summary: workspaceState.summary,
+      searchQuery,
       refresh: workspaceState.refresh,
     };
-  }, [auth.user, competence, workspaceState.data, workspaceState.refresh, workspaceState.summary]);
+  }, [auth.user, competence, searchQuery, workspaceState.data, workspaceState.refresh, workspaceState.summary]);
 
   if (!auth.configured) return <SupabaseSetupPage />;
   if (auth.loading) return <LoadingState label="Validando sessão" />;
@@ -130,8 +132,10 @@ function ProtectedApp() {
       activeScreen={activeScreen}
       competence={competence}
       summary={pageProps.summary}
+      searchQuery={searchQuery}
       onScreenChange={setActiveScreen}
       onCompetenceChange={setCompetence}
+      onSearchChange={setSearchQuery}
       onReport={handleReport}
       onLogout={auth.signOut}
     >

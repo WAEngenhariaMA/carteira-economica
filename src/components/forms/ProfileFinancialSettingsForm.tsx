@@ -21,19 +21,29 @@ export function ProfileFinancialSettingsForm({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [form, setForm] = useState<{
+    ownerName: string;
+    householdName: string;
     monthlyIncomeTarget: string;
     currentReserve: string;
     reserveTarget: string;
     idealIncome: string;
     riskTolerance: FinancialProfile["riskTolerance"];
     preferredRule: FinancialProfile["preferredRule"];
+    currentSituation: FinancialProfile["currentSituation"];
+    mainObjective: FinancialProfile["mainObjective"];
+    reserveMonthsDesired: string;
   }>({
+    ownerName: profile.ownerName,
+    householdName: profile.householdName,
     monthlyIncomeTarget: moneyInput(profile.monthlyIncomeTarget),
     currentReserve: moneyInput(profile.currentReserve),
     reserveTarget: moneyInput(profile.reserveTarget),
     idealIncome: moneyInput(profile.idealIncome),
     riskTolerance: profile.riskTolerance,
     preferredRule: profile.preferredRule,
+    currentSituation: profile.currentSituation,
+    mainObjective: profile.mainObjective,
+    reserveMonthsDesired: String(profile.reserveMonthsDesired),
   });
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -43,12 +53,17 @@ export function ProfileFinancialSettingsForm({
 
     try {
       await onSubmit({
+        ownerName: form.ownerName.trim(),
+        householdName: form.householdName.trim(),
         monthlyIncomeTarget: optionalMoney(form.monthlyIncomeTarget),
         currentReserve: optionalMoney(form.currentReserve),
         reserveTarget: optionalMoney(form.reserveTarget),
         idealIncome: optionalMoney(form.idealIncome),
         riskTolerance: form.riskTolerance as FinancialProfile["riskTolerance"],
         preferredRule: form.preferredRule as FinancialProfile["preferredRule"],
+        currentSituation: form.currentSituation,
+        mainObjective: form.mainObjective,
+        reserveMonthsDesired: Number(form.reserveMonthsDesired) as FinancialProfile["reserveMonthsDesired"],
       });
       setSaved(true);
     } finally {
@@ -58,6 +73,22 @@ export function ProfileFinancialSettingsForm({
 
   return (
     <form className="entry-form" onSubmit={handleSubmit}>
+      <label>
+        Nome
+        <input
+          value={form.ownerName}
+          onChange={(event) => setForm({ ...form, ownerName: event.target.value })}
+          required
+        />
+      </label>
+      <label>
+        Nome da carteira
+        <input
+          value={form.householdName}
+          onChange={(event) => setForm({ ...form, householdName: event.target.value })}
+          required
+        />
+      </label>
       <label>
         Renda alvo mensal
         <input
@@ -120,8 +151,50 @@ export function ProfileFinancialSettingsForm({
           <option value="50-30-20">50/30/20</option>
           <option value="60-25-15">60/25/15</option>
           <option value="70-10-20">70/10/20</option>
+          <option value="80-5-15">80/5/15</option>
         </select>
       </label>
+      <label>
+        Situação atual
+        <select
+          value={form.currentSituation}
+          onChange={(event) => setForm({ ...form, currentSituation: event.target.value as FinancialProfile["currentSituation"] })}
+        >
+          <option value="healthy">Saudável</option>
+          <option value="tight">Apertado</option>
+          <option value="indebted">Endividado</option>
+          <option value="reorganizing">Reorganizando</option>
+          <option value="investing">Investindo</option>
+        </select>
+      </label>
+      <label>
+        Objetivo principal
+        <select
+          value={form.mainObjective}
+          onChange={(event) => setForm({ ...form, mainObjective: event.target.value as FinancialProfile["mainObjective"] })}
+        >
+          <option value="pay_debts">Quitar dívidas</option>
+          <option value="organize_spending">Organizar gastos</option>
+          <option value="build_reserve">Criar reserva</option>
+          <option value="invest">Investir</option>
+          <option value="buy_asset">Comprar algo</option>
+          <option value="reduce_cards">Reduzir cartão</option>
+        </select>
+      </label>
+      <label>
+        Meses de reserva desejados
+        <select
+          value={form.reserveMonthsDesired}
+          onChange={(event) => setForm({ ...form, reserveMonthsDesired: event.target.value })}
+        >
+          <option value="3">3 meses</option>
+          <option value="6">6 meses</option>
+          <option value="12">12 meses</option>
+        </select>
+      </label>
+      <p className="form-success inline-message">
+        Deixe meta de reserva e renda ideal em branco para cálculo automático pelo motor financeiro.
+      </p>
       <button className="primary-button" type="submit" disabled={saving}>
         {saving ? "Salvando..." : "Salvar premissas"}
       </button>

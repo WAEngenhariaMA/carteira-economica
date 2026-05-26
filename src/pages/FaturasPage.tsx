@@ -3,6 +3,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { EmptyState, Panel, StatusPill } from "../components/ui/FinanceUI";
 import { invoiceBelongsToCompetence } from "../lib/financeEngine";
 import { formatMoney, formatNumberInput, normalizeMoneyInput } from "../lib/formatters";
+import { matchesInvoiceSearch } from "../lib/searchFilters";
 import { invoiceService } from "../services/invoiceService";
 import type { WorkspacePageProps } from "../app/routes";
 import type { Invoice } from "../types/finance";
@@ -16,10 +17,13 @@ function dueDateForCard(cards: WorkspacePageProps["workspace"]["cards"], cardId:
   return `${competence}-${String(dueDay).padStart(2, "0")}`;
 }
 
-export function FaturasPage({ userId, competence, workspace, refresh }: WorkspacePageProps) {
+export function FaturasPage({ userId, competence, workspace, searchQuery, refresh }: WorkspacePageProps) {
   const [editing, setEditing] = useState<Invoice | null>(null);
   const defaultCardId = workspace.cards[0]?.id ?? "";
-  const invoices = workspace.invoices.filter((invoice) => invoiceBelongsToCompetence(invoice, competence));
+  const invoices = workspace.invoices.filter((invoice) => {
+    const card = workspace.cards.find((item) => item.id === invoice.cardId);
+    return invoiceBelongsToCompetence(invoice, competence) && matchesInvoiceSearch(invoice, card, searchQuery);
+  });
   const [form, setForm] = useState({ cardId: defaultCardId, totalAmount: "", dueDate: dueDateForCard(workspace.cards, defaultCardId, competence), status: "open" });
 
   useEffect(() => {

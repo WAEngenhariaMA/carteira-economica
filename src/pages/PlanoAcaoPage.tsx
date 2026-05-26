@@ -32,6 +32,7 @@ export function PlanoAcaoPage({ userId, workspace, summary, refresh }: Workspace
             <article className="narrative-card" key={item.horizon}>
               <strong>{item.horizon}: {item.title}</strong>
               <span>{item.description}</span>
+              <span>Primeiro passo: {item.firstStep}</span>
               <b>Impacto esperado: {formatMoney(item.expectedImpact)}</b>
             </article>
           ))}
@@ -71,6 +72,7 @@ export function PlanoAcaoPage({ userId, workspace, summary, refresh }: Workspace
                     <td>
                       <strong>{action.title}</strong>
                       <span>{action.reason}</span>
+                      {action.firstStep && <span>Primeiro passo: {action.firstStep}</span>}
                     </td>
                     <td>{action.horizon}</td>
                     <td><RiskPill level={action.priority} /></td>
@@ -115,6 +117,7 @@ export function PlanoAcaoPage({ userId, workspace, summary, refresh }: Workspace
                   <td>
                     <strong>{action.title}</strong>
                     <span>{action.reason}</span>
+                    {action.firstStep && <span>Primeiro passo: {action.firstStep}</span>}
                   </td>
                   <td>{action.horizon}</td>
                   <td><RiskPill level={action.priority} /></td>

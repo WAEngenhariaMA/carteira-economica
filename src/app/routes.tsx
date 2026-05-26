@@ -22,6 +22,7 @@ export interface WorkspacePageProps {
   competence: string;
   workspace: FinancialWorkspace;
   summary: FinancialSummary;
+  searchQuery: string;
   refresh: () => void;
 }
 
