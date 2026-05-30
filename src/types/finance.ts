@@ -256,7 +256,14 @@ export interface DataQualityIssue {
   message: string;
   severity: "warning" | "error";
   id?: string;
-  source?: "profile" | "transaction" | "invoice" | "installment" | "card" | "category" | "debt";
+  source?:
+    | "profile"
+    | "transaction"
+    | "invoice"
+    | "installment"
+    | "card"
+    | "category"
+    | "debt";
   entityId?: string;
   impact?: string;
 }
@@ -351,6 +358,10 @@ export interface FinancialSummary {
   openCardInvoices: number;
   paidCardInvoices: number;
   debtPayments: number;
+  debtMonthlyPayments: number;
+  loanInstallments: number;
+  paidLoanInstallments: number;
+  pendingLoanInstallments: number;
   totalOutflow: number;
   projectedBalance: number;
   realizedBalance: number;
