@@ -204,12 +204,6 @@ export function DashboardPage(props: WorkspacePageProps) {
     workspace.debts,
   );
   const categoryData = categoryTotals(workspace.transactions, competence);
-  const currentProjection = summary.futureCommitments[0];
-  const nonInvoicedCardInstallments =
-    currentProjection?.nonInvoicedCardInstallments ?? 0;
-  const loanInstallmentsInMonth = summary.loanInstallments;
-  const installmentsOutsideInvoices =
-    loanInstallmentsInMonth + nonInvoicedCardInstallments;
   const commitmentValue =
     summary.expectedIncome > 0
       ? formatPercent(summary.committedIncomeRatio)
@@ -359,13 +353,9 @@ export function DashboardPage(props: WorkspacePageProps) {
         <MetricCard
           icon={Rows3}
           label="Empréstimos/Parcelas Fora da Fatura"
-          value={formatMoney(installmentsOutsideInvoices)}
-          helper={
-            nonInvoicedCardInstallments > 0
-              ? `Empréstimos ${formatMoney(loanInstallmentsInMonth)} + cartões sem fatura ${formatMoney(nonInvoicedCardInstallments)}`
-              : "Empréstimos do mês. Parcelas de cartão ficam nas faturas."
-          }
-          tone={installmentsOutsideInvoices > 0 ? "warn" : "good"}
+          value={formatMoney(summary.loanInstallments)}
+          helper={`Total do mês ${formatMoney(summary.loanInstallments)} | pagos ${formatMoney(summary.paidLoanInstallments)} | em aberto/agendados ${formatMoney(summary.pendingLoanInstallments)}`}
+          tone={summary.pendingLoanInstallments > 0 ? "warn" : "good"}
         />
         <MetricCard
           icon={BadgeCheck}

@@ -27,7 +27,18 @@ export interface WorkspacePageProps {
   refresh: () => void;
 }
 
-export const navItems: Array<{ id: ScreenId; label: string; icon: LucideIcon }> = [
+export interface NavItem {
+  id: ScreenId;
+  label: string;
+  icon: LucideIcon;
+}
+
+export interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
+
+export const navItems: NavItem[] = [
   { id: "dashboard", label: "Painel", icon: LayoutDashboard },
   { id: "indicadores", label: "Indicadores", icon: Gauge },
   { id: "receitas", label: "Receitas", icon: Banknote },
@@ -43,6 +54,41 @@ export const navItems: Array<{ id: ScreenId; label: string; icon: LucideIcon }> 
   { id: "simulador", label: "Simulador", icon: Calculator },
   { id: "relatorios", label: "Relatório PDF", icon: FileText },
   { id: "configuracoes", label: "Configurações", icon: Settings },
+];
+
+const navItemById = new Map(navItems.map((item) => [item.id, item]));
+
+function groupItems(ids: ScreenId[]): NavItem[] {
+  return ids
+    .map((id) => navItemById.get(id))
+    .filter((item): item is NavItem => Boolean(item));
+}
+
+export const navGroups: NavGroup[] = [
+  {
+    title: "Central Executiva",
+    items: groupItems(["dashboard", "indicadores"]),
+  },
+  {
+    title: "Fluxo Financeiro",
+    items: groupItems(["receitas", "despesas"]),
+  },
+  {
+    title: "Crédito e Dívidas",
+    items: groupItems(["cartoes", "faturas", "parcelas"]),
+  },
+  {
+    title: "Inteligência e Decisão",
+    items: groupItems(["importador", "diagnostico", "plano", "alertas", "simulador"]),
+  },
+  {
+    title: "Planejamento",
+    items: groupItems(["metas", "relatorios"]),
+  },
+  {
+    title: "Administração",
+    items: groupItems(["configuracoes"]),
+  },
 ];
 
 export const screenTitles: Record<ScreenId, string> = {
