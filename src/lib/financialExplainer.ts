@@ -5,6 +5,8 @@ import type {
   Debt,
   DiagnosticFinding,
   FinancialSummary,
+  Installment,
+  Invoice,
   RiskLevel,
 } from "../types/finance";
 import { formatMoney, formatPercent, riskLabel } from "./formatters";
@@ -29,6 +31,22 @@ export interface PriorityActionExplanation {
   impact: string;
 }
 
+export interface PaymentPriorityItem {
+  title: string;
+  reason: string;
+  action: string;
+  estimatedRelief: number;
+  urgency: "Imediata" | "Próxima" | "Estratégica";
+  caution: string;
+}
+
+export interface CardUsageGuidance {
+  recommendation: string;
+  recommendedLimit: number;
+  installmentLimit: number;
+  warning: string;
+}
+
 export interface TechnicalDiagnosisLine {
   label: string;
   value: string;
@@ -45,6 +63,8 @@ export interface FinancialExplanation {
   installmentsExplanation: string;
   whatToDoFirst: PriorityActionExplanation[];
   horizonPlan: HorizonPlanItem[];
+  paymentPriorities: PaymentPriorityItem[];
+  cardUsageGuidance: CardUsageGuidance;
   plainLanguageAlerts: string[];
   scoreImprovementSuggestions: string[];
   executiveDiagnosis: string;
@@ -56,6 +76,8 @@ export interface FinancialExplanation {
 interface FinancialExplanationInput {
   summary: FinancialSummary;
   cards: Card[];
+  invoices?: Invoice[];
+  installments?: Installment[];
   debts: Debt[];
   diagnostics: DiagnosticFinding[];
   actions: ActionItem[];
@@ -244,6 +266,127 @@ function buildWhatToDoFirst(summary: FinancialSummary, actions: ActionItem[]) {
   }
 
   return generated.slice(0, 5);
+}
+
+function buildPaymentPriorities(
+  summary: FinancialSummary,
+  cards: Card[],
+  invoices: Invoice[] = [],
+  installments: Installment[] = [],
+  debts: Debt[],
+): PaymentPriorityItem[] {
+  const priorities: PaymentPriorityItem[] = [];
+  const currentInvoices = invoices
+    .filter((invoice) => invoice.competence === summary.futureCommitments[0]?.competence)
+    .filter((invoice) => invoice.status !== "paid")
+    .sort((a, b) => {
+      const aOverdue = a.status === "overdue" ? 1 : 0;
+      const bOverdue = b.status === "overdue" ? 1 : 0;
+      if (aOverdue !== bOverdue) return bOverdue - aOverdue;
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    });
+
+  currentInvoices.slice(0, 2).forEach((invoice, index) => {
+    const card = cards.find((item) => item.id === invoice.cardId);
+    const openAmount = Math.max(invoice.totalAmount - invoice.paidAmount, 0);
+    priorities.push({
+      title: `Pagar ${card?.bank ?? "fatura"} ${index === 0 ? "primeiro" : "logo depois"}`,
+      reason:
+        invoice.status === "overdue"
+          ? "Essa fatura já está vencida ou muito crítica para o caixa."
+          : `Fatura com vencimento em ${invoice.dueDate} pressionando o mês atual.`,
+      action:
+        openAmount > 0
+          ? `Priorize ${formatMoney(openAmount)} nessa fatura antes de assumir nova compra parcelada.`
+          : "Quitar a fatura integralmente para aliviar o risco do cartão.",
+      estimatedRelief: openAmount || invoice.totalAmount,
+      urgency: index === 0 ? "Imediata" : "Próxima",
+      caution:
+        "Evite parcelar a própria fatura enquanto houver espaço para corte ou reorganização do fluxo.",
+    });
+  });
+
+  const highestInterestDebt = [...debts].sort(
+    (a, b) => b.interestRateMonth - a.interestRateMonth || b.monthlyPayment - a.monthlyPayment,
+  )[0];
+
+  if (highestInterestDebt && highestInterestDebt.interestRateMonth >= 6) {
+    priorities.push({
+      title: `Negociar ou atacar ${highestInterestDebt.creditor}`,
+      reason: `Juros de ${highestInterestDebt.interestRateMonth.toFixed(2)}% ao mês drenam o caixa mais rápido.`,
+      action: highestInterestDebt.renegotiable
+        ? "Tentar renegociação de prazo ou juros antes de ampliar o uso do cartão."
+        : "Direcionar sobra mensal para reduzir essa dívida primeiro.",
+      estimatedRelief: highestInterestDebt.monthlyPayment,
+      urgency: "Próxima",
+      caution: "Não faz sentido investir ou abrir novas parcelas enquanto essa dívida continuar cara.",
+    });
+  }
+
+  const pendingLoans = installments
+    .filter((item) => item.source === "loan")
+    .filter((item) => item.competence === summary.futureCommitments[0]?.competence)
+    .filter((item) => item.status !== "paid");
+  const pendingLoanTotal = pendingLoans.reduce((total, item) => total + item.amount, 0);
+
+  if (pendingLoanTotal > 0) {
+    priorities.push({
+      title: "Reservar caixa para parcelas de empréstimo",
+      reason: "Essas parcelas não desaparecem e continuam pressionando os próximos vencimentos.",
+      action: `Separar pelo menos ${formatMoney(pendingLoanTotal)} para não deixar empréstimo competir com conta essencial.`,
+      estimatedRelief: pendingLoanTotal,
+      urgency: priorities.length === 0 ? "Imediata" : "Próxima",
+      caution: "Empréstimo atrasado costuma piorar score e reduzir margem de negociação.",
+    });
+  }
+
+  if (priorities.length === 0) {
+    priorities.push({
+      title: "Manter pagamentos essenciais organizados",
+      reason: "Não apareceu um ponto crítico isolado na base atual.",
+      action: "Pague essenciais e faturas na ordem de vencimento, preservando o saldo positivo do mês.",
+      estimatedRelief: 0,
+      urgency: "Estratégica",
+      caution: "Mesmo em cenário estável, evite empurrar compras para meses futuros sem necessidade.",
+    });
+  }
+
+  return priorities.slice(0, 4);
+}
+
+function buildCardUsageGuidance(summary: FinancialSummary, cards: Card[]): CardUsageGuidance {
+  const topCard = highestCardRisk(cards);
+  if (summary.projectedBalance < 0 || summary.cardIncomeRatio > 0.3) {
+    return {
+      recommendation:
+        "Não usar cartão para novas compras até reorganizar o mês atual.",
+      recommendedLimit: 0,
+      installmentLimit: 0,
+      warning:
+        topCard
+          ? `${topCard.bank} já está sensível. Nova parcela aumenta o risco de rolagem e aperto.`
+          : "Com saldo projetado negativo, novas compras no cartão pioram o fluxo.",
+    };
+  }
+
+  const recommendedLimit = Math.max(
+    Math.min(summary.projectedBalance * 0.35, summary.safeWeeklySpend * 2),
+    0,
+  );
+  const installmentLimit = recommendedLimit > 0 ? Math.min(3, 2) : 0;
+
+  return {
+    recommendation:
+      recommendedLimit > 0
+        ? `Se precisar usar cartão, mantenha até ${formatMoney(recommendedLimit)} e prefira à vista ou em até ${installmentLimit}x.`
+        : "Evite novo uso do cartão nesta competência.",
+    recommendedLimit,
+    installmentLimit,
+    warning:
+      topCard
+        ? `O cartão mais sensível hoje é ${topCard.bank}; se usar crédito, não concentre novas compras nele.`
+        : "Use crédito só se houver espaço real no saldo previsto.",
+  };
 }
 
 function buildHorizonPlan(summary: FinancialSummary) {
@@ -465,7 +608,16 @@ function buildGlossary() {
 }
 
 export function buildFinancialExplanation(input: FinancialExplanationInput): FinancialExplanation {
-  const { summary, cards, debts, diagnostics, actions, alerts } = input;
+  const {
+    summary,
+    cards,
+    invoices = [],
+    installments = [],
+    debts,
+    diagnostics,
+    actions,
+    alerts,
+  } = input;
 
   return {
     simpleMonthSummary: buildSimpleMonthSummary(summary),
@@ -477,6 +629,14 @@ export function buildFinancialExplanation(input: FinancialExplanationInput): Fin
     installmentsExplanation: buildInstallmentsExplanation(summary),
     whatToDoFirst: buildWhatToDoFirst(summary, actions),
     horizonPlan: buildHorizonPlan(summary),
+    paymentPriorities: buildPaymentPriorities(
+      summary,
+      cards,
+      invoices,
+      installments,
+      debts,
+    ),
+    cardUsageGuidance: buildCardUsageGuidance(summary, cards),
     plainLanguageAlerts: buildPlainLanguageAlerts(alerts, summary),
     scoreImprovementSuggestions: buildScoreSuggestions(summary),
     executiveDiagnosis: buildExecutiveDiagnosis(summary, diagnostics),

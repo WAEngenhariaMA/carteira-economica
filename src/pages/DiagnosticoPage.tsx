@@ -41,6 +41,8 @@ export function DiagnosticoPage({ userId, competence, workspace, summary }: Work
   const explanation = buildFinancialExplanation({
     summary,
     cards: workspace.cards,
+    invoices: workspace.invoices,
+    installments: workspace.installments,
     debts: workspace.debts,
     diagnostics,
     actions: suggestedActions,
@@ -137,7 +139,7 @@ export function DiagnosticoPage({ userId, competence, workspace, summary }: Work
           </div>
         </Panel>
       </div>
-      <Panel title="Explicação em Português Claro">
+      <Panel title="Leitura Guiada do Mês">
         <div className="narrative-stack">
           <div className="narrative-lead">
             <IconBadge icon={Brain} tone={summary.projectedBalance < 0 ? "danger" : "good"} />
@@ -167,6 +169,52 @@ export function DiagnosticoPage({ userId, competence, workspace, summary }: Work
           </div>
         </div>
       </Panel>
+      <div className="dashboard-grid">
+        <Panel title="Prioridades de Pagamento">
+          <div className="action-list">
+            {explanation.paymentPriorities.map((item) => (
+              <article className="action-row" key={item.title}>
+                <div>
+                  <strong>{item.title}</strong>
+                  <span>{item.reason}</span>
+                  <span>{item.action}</span>
+                  <span>{item.caution}</span>
+                </div>
+                <div className="action-meta">
+                  <RiskPill
+                    level={
+                      item.urgency === "Imediata"
+                        ? "critical"
+                        : item.urgency === "Próxima"
+                          ? "attention"
+                          : "healthy"
+                    }
+                    label={item.urgency}
+                  />
+                  <strong>{formatMoney(item.estimatedRelief)}</strong>
+                </div>
+              </article>
+            ))}
+          </div>
+        </Panel>
+        <Panel title="Uso Prudente do Cartão">
+          <div className="narrative-grid one-column">
+            <article className="narrative-card horizon-card">
+              <IconBadge icon={Brain} tone={explanation.cardUsageGuidance.recommendedLimit > 0 ? "good" : "warn"} />
+              <div>
+                <strong>{explanation.cardUsageGuidance.recommendation}</strong>
+                <span>{explanation.cardUsageGuidance.warning}</span>
+                <b>
+                  Limite sugerido nesta competência: {formatMoney(explanation.cardUsageGuidance.recommendedLimit)}
+                  {explanation.cardUsageGuidance.installmentLimit > 0
+                    ? ` | parcelamento prudente: até ${explanation.cardUsageGuidance.installmentLimit}x`
+                    : " | sem parcelamento novo recomendado"}
+                </b>
+              </div>
+            </article>
+          </div>
+        </Panel>
+      </div>
       <div className="dashboard-grid">
         <Panel title="O Que Fazer Primeiro">
           <div className="action-list">
