@@ -4,12 +4,12 @@ import { validateDiagnosis } from "../types";
 
 function readLocalAiUrl() {
   const configured = localStorage.getItem("ceia.localAiUrl");
-  return configured || import.meta.env.VITE_LOCAL_AI_URL || "http://localhost:11434/api/chat";
+  return configured || import.meta.env.VITE_LOCAL_AI_URL || "http://localhost:11434";
 }
 
 function readLocalAiModel() {
   const configured = localStorage.getItem("ceia.localAiModel");
-  return configured || import.meta.env.VITE_LOCAL_AI_MODEL || "qwen2.5:7b";
+  return configured || import.meta.env.VITE_LOCAL_AI_MODEL || "qwen2.5:3b";
 }
 
 function readTimeoutMs() {
@@ -26,6 +26,11 @@ function extractJson(content: string) {
   return JSON.parse(match[0]);
 }
 
+function buildChatUrl() {
+  const trimmed = readLocalAiUrl().trim().replace(/\/$/, "");
+  return trimmed.endsWith("/api/chat") ? trimmed : `${trimmed}/api/chat`;
+}
+
 export const ollamaProvider: DiagnosticProvider = {
   name: "ollama",
   label: "IA Local - Ollama",
@@ -34,7 +39,7 @@ export const ollamaProvider: DiagnosticProvider = {
     const timeout = window.setTimeout(() => controller.abort(), readTimeoutMs());
 
     try {
-      const response = await fetch(readLocalAiUrl(), {
+      const response = await fetch(buildChatUrl(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,

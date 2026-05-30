@@ -866,6 +866,46 @@ button {
   gap: 14px;
 }
 
+.settings-tabbar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.settings-tab {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 14px;
+  text-align: left;
+  color: var(--muted);
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.settings-tab.active {
+  color: var(--text);
+  background: #eef6ff;
+  border-color: #b8d3ff;
+}
+
+.settings-tab strong,
+.settings-tab span {
+  display: block;
+}
+
+.settings-tab strong {
+  font-size: 13px;
+}
+
+.settings-tab span {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .ai-status-card {
   grid-template-columns: 34px minmax(0, 1fr) auto;
   padding: 14px;
@@ -896,6 +936,98 @@ button {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 8px;
+}
+
+.ai-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.ai-choice-card {
+  display: grid;
+  gap: 5px;
+  min-height: 98px;
+  padding: 14px;
+  text-align: left;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.ai-choice-card.active {
+  color: var(--text);
+  background: #f0f8f7;
+  border-color: #9fd2ca;
+}
+
+.ai-choice-card strong,
+.ai-choice-card span {
+  display: block;
+}
+
+.ai-choice-card strong {
+  font-size: 13px;
+}
+
+.ai-choice-card span {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.ai-guide-panel,
+.ai-setup-callout,
+.ai-advanced-note {
+  display: grid;
+  gap: 8px;
+  padding: 13px 14px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.ai-guide-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--text);
+}
+
+.ai-guide-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.ai-guide-copy p,
+.ai-advanced-note span,
+.ai-setup-callout span {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.ai-local-setup {
+  display: grid;
+  gap: 12px;
+}
+
+.ai-entry-form {
+  align-items: end;
+}
+
+.ai-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ai-advanced-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 12px;
+  align-items: end;
 }
 
 .ai-mode-notes span {
@@ -2061,6 +2193,9 @@ button {
   .narrative-summary-grid,
   .narrative-grid.compact,
   .composition-list,
+  .settings-tabbar,
+  .ai-choice-grid,
+  .ai-advanced-grid,
   .scenario-grid,
   .installment-form {
     grid-template-columns: 1fr;
