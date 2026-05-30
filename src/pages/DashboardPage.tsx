@@ -6,10 +6,8 @@ import {
   CreditCard,
   ListChecks,
   ReceiptText,
-  Rows3,
   ShieldAlert,
-  TrendingDown,
-  WalletCards,
+  type LucideIcon,
 } from "lucide-react";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import {
@@ -61,7 +59,7 @@ function HealthScore({ props }: { props: WorkspacePageProps }) {
           <h3>{summary.financialStatus}</h3>
           <p>
             Análise do mês selecionado. Os gráficos abaixo mostram projeção
-            futura; os cards acima não acumulam outros meses.
+            futura; os cards executivos acima ficam restritos à competência.
           </p>
           <div className="rule-row">
             <span>{summary.adaptiveBudget.label}</span>
@@ -125,6 +123,110 @@ function CardsModule({ props }: { props: WorkspacePageProps }) {
   );
 }
 
+type CompositionItem = {
+  id: string;
+  label: string;
+  amount: number;
+  detail: string;
+  tone: "teal" | "red" | "blue" | "amber";
+  icon: LucideIcon;
+};
+
+function MonthComposition({ props }: { props: WorkspacePageProps }) {
+  const { summary } = props;
+  const items = [
+    {
+      id: "direct",
+      label: "Despesas diretas",
+      amount: summary.directFixedExpenses + summary.directVariableExpenses,
+      detail: "Saídas fora do cartão na competência.",
+      tone: "teal",
+      icon: ReceiptText,
+    },
+    {
+      id: "cards",
+      label: "Faturas de cartão",
+      amount: summary.cardInvoices,
+      detail: `Abertas ${formatMoney(summary.openCardInvoices)} | pagas ${formatMoney(summary.paidCardInvoices)}`,
+      tone: "red",
+      icon: CreditCard,
+    },
+    {
+      id: "loans",
+      label: "Empréstimos parcelados",
+      amount: summary.loanInstallments,
+      detail: `Pagos ${formatMoney(summary.paidLoanInstallments)} | em aberto/agendados ${formatMoney(summary.pendingLoanInstallments)}`,
+      tone: "blue",
+      icon: ListChecks,
+    },
+    {
+      id: "debts",
+      label: "Dívidas fixas",
+      amount: summary.debtMonthlyPayments,
+      detail: "Compromissos recorrentes fora do cartão.",
+      tone: "amber",
+      icon: ShieldAlert,
+    },
+  ] satisfies CompositionItem[];
+  const visibleItems = items.filter((item) => item.amount > 0);
+  const totalCommitted = Math.max(summary.totalOutflow, 0);
+
+  return (
+    <section className="composition-block" aria-label="Mapa de compromissos">
+      <div className="composition-summary">
+        <div>
+          <span className="composition-eyebrow">Mapa dos compromissos</span>
+          <strong>{formatMoney(summary.totalOutflow)}</strong>
+        </div>
+        <p>
+          Visão bancária das saídas do mês, separando despesas diretas,
+          faturas, empréstimos parcelados e dívidas fixas.
+        </p>
+      </div>
+
+      <div className="composition-rail" aria-label="Composição dos compromissos">
+        {visibleItems.map((item) => (
+          <span
+            key={item.id}
+            className={`composition-segment segment-${item.tone}`}
+            style={{
+              width: `${totalCommitted > 0 ? (item.amount / totalCommitted) * 100 : 0}%`,
+            }}
+            title={`${item.label}: ${formatMoney(item.amount)}`}
+          />
+        ))}
+      </div>
+
+      <div className="composition-list">
+        {visibleItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <article className="composition-item" key={item.id}>
+              <div className="composition-item-top">
+                <div className="composition-title">
+                  <span className={`composition-dot dot-${item.tone}`} />
+                  <Icon size={16} />
+                  <strong>{item.label}</strong>
+                </div>
+                <b>{formatMoney(item.amount)}</b>
+              </div>
+              <div className="composition-item-meta">
+                <span>
+                  {totalCommitted > 0
+                    ? formatPercent(item.amount / totalCommitted)
+                    : "0%"}{" "}
+                  do total
+                </span>
+                <span>{item.detail}</span>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function ExecutiveNarrative({ props }: { props: WorkspacePageProps }) {
   const diagnostics = buildDiagnostics(
     props.summary,
@@ -132,8 +234,6 @@ function ExecutiveNarrative({ props }: { props: WorkspacePageProps }) {
     props.workspace.debts,
   );
   const alerts = buildAlerts(props.summary, props.workspace.cards);
-  const directExpenses =
-    props.summary.directFixedExpenses + props.summary.directVariableExpenses;
   const explanation = buildFinancialExplanation({
     summary: props.summary,
     cards: props.workspace.cards,
@@ -152,35 +252,27 @@ function ExecutiveNarrative({ props }: { props: WorkspacePageProps }) {
         />
         <p>{explanation.simpleMonthSummary}</p>
       </div>
-      <div className="balance-ledger">
-        <span>
-          Renda prevista{" "}
+      <div className="narrative-summary-grid">
+        <article className="summary-chip">
+          <span>Renda prevista</span>
           <strong>{formatMoney(props.summary.expectedIncome)}</strong>
-        </span>
-        <span>
-          Despesas diretas <strong>-{formatMoney(directExpenses)}</strong>
-        </span>
-        <span>
-          Faturas de cartão{" "}
-          <strong>-{formatMoney(props.summary.cardInvoices)}</strong>
-        </span>
-        <span>
-          Dívidas fixas{" "}
-          <strong>-{formatMoney(props.summary.debtMonthlyPayments)}</strong>
-        </span>
-        <span>
-          Empréstimos parcelados{" "}
-          <strong>-{formatMoney(props.summary.loanInstallments)}</strong>
-        </span>
-        <span
+        </article>
+        <article className="summary-chip">
+          <span>Pressão da renda</span>
+          <strong>{formatPercent(props.summary.committedIncomeRatio)}</strong>
+        </article>
+        <article
           className={
-            props.summary.projectedBalance < 0 ? "negative" : "positive"
+            props.summary.projectedBalance < 0
+              ? "summary-chip negative"
+              : "summary-chip positive"
           }
         >
-          Saldo previsto{" "}
+          <span>Saldo previsto</span>
           <strong>{formatMoney(props.summary.projectedBalance)}</strong>
-        </span>
+        </article>
       </div>
+      <MonthComposition props={props} />
       <div className="narrative-grid compact">
         {explanation.whatToDoFirst.slice(0, 3).map((action) => (
           <article className="narrative-card" key={action.title}>
@@ -204,16 +296,14 @@ export function DashboardPage(props: WorkspacePageProps) {
     workspace.debts,
   );
   const categoryData = categoryTotals(workspace.transactions, competence);
+  const directExpenses =
+    summary.directFixedExpenses + summary.directVariableExpenses;
   const commitmentValue =
     summary.expectedIncome > 0
       ? formatPercent(summary.committedIncomeRatio)
       : summary.totalOutflow > 0
         ? "Sem renda"
         : "0%";
-  const commitmentHelper =
-    summary.expectedIncome > 0
-      ? "Despesas, faturas e dívidas da competência"
-      : `Compromissos de ${formatMoney(summary.totalOutflow)} sem renda no mês`;
   const hasNegativeProjectedMonth = summary.futureCommitments.some(
     (item) => item.projectedBalance < 0,
   );
@@ -271,13 +361,13 @@ export function DashboardPage(props: WorkspacePageProps) {
       },
     ],
   };
-  const installmentChart = {
+  const commitmentBreakdownChart = {
     labels: summary.futureCommitments.map((item) => item.month),
     datasets: [
       {
         label: "Faturas/cartões",
         data: summary.futureCommitments.map((item) => item.cardInvoices),
-        backgroundColor: "#0f766e",
+        backgroundColor: "#dc2626",
         borderRadius: 6,
       },
       {
@@ -318,50 +408,25 @@ export function DashboardPage(props: WorkspacePageProps) {
         />
         <MetricCard
           icon={ReceiptText}
-          label="Compromissos Totais do Mês"
+          label="Despesas Totais do Mês"
           value={formatMoney(summary.totalOutflow)}
-          helper={`Diretas ${formatMoney(summary.directFixedExpenses + summary.directVariableExpenses)} + faturas ${formatMoney(summary.cardInvoices)} + empréstimos/dívidas ${formatMoney(summary.debtPayments)}.`}
+          helper={`Diretas ${formatMoney(directExpenses)} + faturas ${formatMoney(summary.cardInvoices)} + empréstimos/dívidas ${formatMoney(summary.debtPayments)} | pressão ${commitmentValue}`}
           tone={
             summary.committedIncomeRatio > 0.7 ||
             (summary.expectedIncome <= 0 && summary.totalOutflow > 0)
               ? "danger"
               : "warn"
           }
-        />
-
-        <MetricCard
-          icon={TrendingDown}
-          label="Comprometimento do Mês"
-          value={commitmentValue}
-          helper={commitmentHelper}
-          tone={
-            summary.committedIncomeRatio > 0.7 ||
-            (summary.expectedIncome <= 0 && summary.totalOutflow > 0)
-              ? "danger"
-              : "warn"
-          }
-        />
-
-        <MetricCard
-          icon={WalletCards}
-          label="Faturas do Mês"
-          value={formatMoney(summary.cardInvoices)}
-          helper={`Somente cartões. Abertas ${formatMoney(summary.openCardInvoices)} | pagas ${formatMoney(summary.paidCardInvoices)}`}
-          tone={summary.cardIncomeRatio > 0.3 ? "danger" : "neutral"}
-        />
-
-        <MetricCard
-          icon={Rows3}
-          label="Empréstimos/Parcelas Fora da Fatura"
-          value={formatMoney(summary.loanInstallments)}
-          helper={`Total do mês ${formatMoney(summary.loanInstallments)} | pagos ${formatMoney(summary.paidLoanInstallments)} | em aberto/agendados ${formatMoney(summary.pendingLoanInstallments)}`}
-          tone={summary.pendingLoanInstallments > 0 ? "warn" : "good"}
         />
         <MetricCard
           icon={BadgeCheck}
-          label="Saldo Previsto do Mês"
+          label="Saldo Previsto"
           value={formatMoney(summary.projectedBalance)}
-          helper={`Renda ${formatMoney(summary.expectedIncome)} - compromissos ${formatMoney(summary.totalOutflow)}`}
+          helper={
+            summary.projectedBalance >= 0
+              ? `Sobra projetada de ${formatMoney(summary.projectedBalance)} após todos os compromissos`
+              : `Faltam ${formatMoney(Math.abs(summary.projectedBalance))} para fechar o mês sem pressão`
+          }
           tone={summary.projectedBalance >= 0 ? "good" : "danger"}
         />
       </div>
@@ -389,8 +454,11 @@ export function DashboardPage(props: WorkspacePageProps) {
         <Panel title="Categorias Pesadas" className="chart-panel">
           <Doughnut data={categoryChart} options={doughnutOptions} />
         </Panel>
-        <Panel title="Compromissos por Competência" className="chart-panel">
-          <Bar data={installmentChart} options={chartOptions} />
+        <Panel
+          title="Estratificação de Faturas, Empréstimos e Dívidas"
+          className="chart-panel"
+        >
+          <Bar data={commitmentBreakdownChart} options={chartOptions} />
         </Panel>
         <Panel title="Diagnóstico Executivo">
           <div className="insight-list">
