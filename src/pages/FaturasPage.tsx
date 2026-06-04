@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
+import { Modal } from "../components/ui/Modal";
 import { EmptyState, Panel, StatusPill } from "../components/ui/FinanceUI";
 import { invoiceBelongsToCompetence } from "../lib/financeEngine";
 import { formatMoney, formatNumberInput, normalizeMoneyInput } from "../lib/formatters";
@@ -50,21 +51,21 @@ export function FaturasPage({ userId, competence, workspace, searchQuery, refres
     setForm({ cardId: defaultCardId, totalAmount: "", dueDate: dueDateForCard(workspace.cards, defaultCardId, competence), status: "open" });
   }
 
+  const editForm = form;
+
   return (
     <div className="screen-stack">
-      <Panel title={editing ? "Editar Fatura" : "Cadastrar Fatura"}>
+      <Panel title="Cadastrar Fatura">
         <form
           className="entry-form"
           onSubmit={async (event) => {
             event.preventDefault();
             await invoiceService.upsert(userId, {
-              id: editing?.id,
               cardId: form.cardId,
               competence: form.dueDate.slice(0, 7) || competence,
               dueDate: form.dueDate,
               totalAmount: Number(form.totalAmount),
-              paidAmount: editing?.paidAmount ?? 0,
-              closingDate: editing?.closingDate,
+              paidAmount: 0,
               status: form.status as "open" | "closed" | "paid" | "overdue",
             });
             resetForm();
@@ -75,10 +76,14 @@ export function FaturasPage({ userId, competence, workspace, searchQuery, refres
             Cartão
             <select
               value={form.cardId}
-              onChange={(event) => setForm({ ...form, cardId: event.target.value, dueDate: dueDateForCard(workspace.cards, event.target.value, competence) })}
+              onChange={(event) =>
+                setForm({ ...form, cardId: event.target.value, dueDate: dueDateForCard(workspace.cards, event.target.value, competence) })
+              }
               required
             >
-              {workspace.cards.map((card) => <option key={card.id} value={card.id}>{card.bank} - {card.name}</option>)}
+              {workspace.cards.map((card) => (
+                <option key={card.id} value={card.id}>{card.bank} — {card.name}</option>
+              ))}
             </select>
           </label>
           <label>
@@ -107,15 +112,85 @@ export function FaturasPage({ userId, competence, workspace, searchQuery, refres
             </select>
           </label>
           <div className="form-actions">
-            <button className="primary-button" type="submit">{editing ? "Atualizar fatura" : "Salvar fatura"}</button>
-            {editing && (
-              <button className="ghost-button" type="button" onClick={resetForm}>
-                Cancelar edição
-              </button>
-            )}
+            <button className="primary-button" type="submit">Salvar fatura</button>
           </div>
         </form>
       </Panel>
+
+      {editing && (
+        <Modal
+          title="Editar Fatura"
+          subtitle={(() => {
+            const card = workspace.cards.find((c) => c.id === editing.cardId);
+            return card ? `${card.bank} — ${card.name}` : undefined;
+          })()}
+          onClose={resetForm}
+          size="sm"
+        >
+          <form
+            className="entry-form"
+            onSubmit={async (event) => {
+              event.preventDefault();
+              await invoiceService.upsert(userId, {
+                id: editing.id,
+                cardId: editForm.cardId,
+                competence: editForm.dueDate.slice(0, 7) || competence,
+                dueDate: editForm.dueDate,
+                totalAmount: Number(editForm.totalAmount),
+                paidAmount: editing.paidAmount ?? 0,
+                closingDate: editing.closingDate,
+                status: editForm.status as "open" | "closed" | "paid" | "overdue",
+              });
+              resetForm();
+              refresh();
+            }}
+          >
+            <label>
+              Cartão
+              <select
+                value={editForm.cardId}
+                onChange={(event) =>
+                  setForm({ ...editForm, cardId: event.target.value, dueDate: dueDateForCard(workspace.cards, event.target.value, competence) })
+                }
+                required
+              >
+                {workspace.cards.map((card) => (
+                  <option key={card.id} value={card.id}>{card.bank} — {card.name}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Valor
+              <input
+                value={editForm.totalAmount}
+                type="number"
+                min="0"
+                step="0.01"
+                onBlur={() => setForm({ ...editForm, totalAmount: normalizeMoneyInput(editForm.totalAmount) })}
+                onChange={(event) => setForm({ ...editForm, totalAmount: event.target.value })}
+                required
+              />
+            </label>
+            <label>
+              Vencimento
+              <input value={editForm.dueDate} type="date" onChange={(event) => setForm({ ...editForm, dueDate: event.target.value })} required />
+            </label>
+            <label>
+              Status
+              <select value={editForm.status} onChange={(event) => setForm({ ...editForm, status: event.target.value })}>
+                <option value="open">Aberta</option>
+                <option value="closed">Fechada</option>
+                <option value="paid">Paga</option>
+                <option value="overdue">Atrasada</option>
+              </select>
+            </label>
+            <div className="form-actions">
+              <button className="primary-button" type="submit">Atualizar fatura</button>
+              <button className="ghost-button" type="button" onClick={resetForm}>Cancelar</button>
+            </div>
+          </form>
+        </Modal>
+      )}
       <Panel title="Faturas com Vencimento na Competência" className="table-panel">
         <div className="data-table-wrap">
           <table className="data-table">

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { InstallmentEditForm } from "../components/forms/InstallmentEditForm";
 import { InstallmentPurchaseForm } from "../components/forms/InstallmentPurchaseForm";
+import { Modal } from "../components/ui/Modal";
 import { EmptyState, Panel, StatusPill } from "../components/ui/FinanceUI";
 import { formatMoney, formatPercent } from "../lib/formatters";
 import { matchesInstallmentSearch } from "../lib/searchFilters";
@@ -91,7 +92,12 @@ export function ParcelasPage({ userId, competence, workspace, summary, searchQue
       </Panel>
 
       {editing && (
-        <Panel title="Editar Parcela">
+        <Modal
+          title="Editar Parcela"
+          subtitle={editing.description ?? (editing.source === "loan" ? "Empréstimo parcelado" : "Compra parcelada")}
+          onClose={() => setEditing(null)}
+          size="md"
+        >
           <InstallmentEditForm
             cards={workspace.cards}
             debts={workspace.debts}
@@ -103,7 +109,7 @@ export function ParcelasPage({ userId, competence, workspace, summary, searchQue
               refresh();
             }}
           />
-        </Panel>
+        </Modal>
       )}
 
       <Panel title="Comprometimento Mensal a Partir da Competência">

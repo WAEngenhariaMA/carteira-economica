@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Bar } from "react-chartjs-2";
 import { CardForm } from "../components/forms/CardForm";
 import { chartOptions } from "../components/charts/chartConfig";
+import { Modal } from "../components/ui/Modal";
 import { IconBadge, Panel, RiskPill } from "../components/ui/FinanceUI";
 import { formatMoney, formatPercent } from "../lib/formatters";
 import { matchesCardSearch } from "../lib/searchFilters";
@@ -23,21 +24,34 @@ export function CartoesPage({ userId, competence, workspace, searchQuery, refres
 
   return (
     <div className="screen-stack">
-      <Panel title={editing ? "Editar Cartão" : "Cadastrar Cartão"}>
+      <Panel title="Cadastrar Cartão">
         <CardForm
-          initialValue={editing}
-          onCancel={() => setEditing(null)}
+          initialValue={null}
           onSubmit={async (card) => {
-            if (editing) {
-              await cardService.update(userId, editing.id, card);
-              setEditing(null);
-            } else {
-              await cardService.create(userId, card);
-            }
+            await cardService.create(userId, card);
             refresh();
           }}
         />
       </Panel>
+
+      {editing && (
+        <Modal
+          title="Editar Cartão"
+          subtitle={`${editing.bank} — ${editing.name}`}
+          onClose={() => setEditing(null)}
+          size="sm"
+        >
+          <CardForm
+            initialValue={editing}
+            onCancel={() => setEditing(null)}
+            onSubmit={async (card) => {
+              await cardService.update(userId, editing.id, card);
+              setEditing(null);
+              refresh();
+            }}
+          />
+        </Modal>
+      )}
       <div className="dashboard-grid">
         <Panel title="Análise por Cartão">
           <div className="card-list">

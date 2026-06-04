@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { TransactionForm } from "../components/forms/TransactionForm";
 import { MoneyTable } from "../components/tables/MoneyTable";
+import { Modal } from "../components/ui/Modal";
 import { MetricCard, Panel } from "../components/ui/FinanceUI";
 import { transactionBelongsToCompetence } from "../lib/financeEngine";
 import { formatMoney } from "../lib/formatters";
@@ -78,24 +79,41 @@ export function DespesasPage({
           tone="danger"
         />
       </div>
-      <Panel title={editing ? "Editar Despesa" : "Cadastrar Despesa"}>
+      <Panel title="Cadastrar Despesa">
         <TransactionForm
           competence={competence}
           type="expense"
           categories={workspace.categories}
-          initialValue={editing}
-          onCancel={() => setEditing(null)}
+          initialValue={null}
           onSubmit={async (transaction) => {
-            if (editing) {
-              await transactionService.update(userId, editing.id, transaction);
-              setEditing(null);
-            } else {
-              await transactionService.create(userId, transaction);
-            }
+            await transactionService.create(userId, transaction);
             refresh();
           }}
         />
       </Panel>
+
+      {editing && (
+        <Modal
+          title="Editar Despesa"
+          subtitle={editing.description}
+          onClose={() => setEditing(null)}
+          size="lg"
+        >
+          <TransactionForm
+            competence={competence}
+            type="expense"
+            categories={workspace.categories}
+            initialValue={editing}
+            onCancel={() => setEditing(null)}
+            onSubmit={async (transaction) => {
+              await transactionService.update(userId, editing.id, transaction);
+              setEditing(null);
+              refresh();
+            }}
+          />
+        </Modal>
+      )}
+
       <Panel title="Despesas Classificadas" className="table-panel">
         <MoneyTable
           title="Despesas"
@@ -103,7 +121,6 @@ export function DespesasPage({
           onEdit={setEditing}
           onDelete={async (id) => {
             await transactionService.remove(userId, id);
-            if (editing?.id === id) setEditing(null);
             refresh();
           }}
         />
