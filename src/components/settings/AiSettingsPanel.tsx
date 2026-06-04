@@ -25,9 +25,23 @@ const aiModes = [
       "Roda no seu próprio computador e melhora os textos do diagnóstico sem expor dados em nuvem.",
   },
   {
+    value: "openrouter",
+    label: "OpenRouter (chave de API)",
+    title: "Claude, GPT-4o, Llama e mais",
+    description:
+      "Uma chave, centenas de modelos. Tem opções gratuitas. Coloque sua chave OpenRouter e escolha o modelo.",
+  },
+  {
+    value: "gemini-direct",
+    label: "Google Gemini (chave de API)",
+    title: "Gemini 2.0 Flash e outros",
+    description:
+      "Chame o Gemini diretamente com sua chave Google AI Studio. Tier gratuito generoso sem cartão.",
+  },
+  {
     value: "edge-function",
-    label: "IA em nuvem",
-    title: "Avançado",
+    label: "IA em nuvem (Edge Function)",
+    title: "Avançado — backend Supabase",
     description:
       "Só funciona quando existir uma Edge Function pronta no Supabase com provedor configurado.",
   },
@@ -36,16 +50,32 @@ const aiModes = [
     label: "Automático com fallback",
     title: "Tenta IA e volta para regras",
     description:
-      "Primeiro tenta IA configurada. Se falhar, continua com regras puras sem quebrar o sistema.",
+      "Primeiro tenta a API direta configurada. Se falhar, cai para local e depois para regras.",
   },
 ] as const;
 
 const localModels = [
-  { value: "qwen2.5:3b", label: "Qwen 2.5 3B - leve" },
-  { value: "qwen2.5:7b", label: "Qwen 2.5 7B - recomendado" },
-  { value: "llama3.2:3b", label: "Llama 3.2 3B - leve" },
-  { value: "mistral:7b", label: "Mistral 7B - alternativo" },
-  { value: "llama3.1:8b", label: "Llama 3.1 8B - pesado" },
+  { value: "qwen2.5:3b", label: "Qwen 2.5 3B — leve" },
+  { value: "qwen2.5:7b", label: "Qwen 2.5 7B — recomendado" },
+  { value: "llama3.2:3b", label: "Llama 3.2 3B — leve" },
+  { value: "mistral:7b", label: "Mistral 7B — alternativo" },
+  { value: "llama3.1:8b", label: "Llama 3.1 8B — pesado" },
+];
+
+const openrouterModels = [
+  { value: "meta-llama/llama-3.1-8b-instruct:free", label: "Llama 3.1 8B — Grátis" },
+  { value: "google/gemma-2-9b-it:free", label: "Google Gemma 2 9B — Grátis" },
+  { value: "mistralai/mistral-7b-instruct:free", label: "Mistral 7B — Grátis" },
+  { value: "anthropic/claude-haiku-4-5", label: "Claude Haiku 4.5 — Pago (melhor)" },
+  { value: "openai/gpt-4o-mini", label: "GPT-4o Mini — Pago (confiável)" },
+  { value: "google/gemini-2.0-flash-exp:free", label: "Gemini 2.0 Flash Exp — Grátis" },
+];
+
+const geminiModels = [
+  { value: "gemini-2.0-flash-lite", label: "Gemini 2.0 Flash Lite — mais rápido" },
+  { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash — recomendado" },
+  { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash — estável" },
+  { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro — maior qualidade" },
 ];
 
 type SimpleMode = (typeof aiModes)[number]["value"];
@@ -107,6 +137,16 @@ export function AiSettingsPanel() {
       import.meta.env.VITE_AI_DIAGNOSTIC_FUNCTION || "generate-diagnostic",
     ),
   );
+  const [apiDirectKey, setApiDirectKey] = useState(
+    localStorageValue("ceia.apiDirectKey", ""),
+  );
+  const [apiDirectProvider, setApiDirectProvider] = useState(
+    localStorageValue("ceia.apiDirectProvider", "openrouter"),
+  );
+  const [apiDirectModel, setApiDirectModel] = useState(
+    localStorageValue("ceia.apiDirectModel", "meta-llama/llama-3.1-8b-instruct:free"),
+  );
+  const [showApiKey, setShowApiKey] = useState(false);
   const [status, setStatus] = useState(
     "Você pode usar o sistema sem IA. Se quiser um texto mais consultivo sem pagar API, use a opção de IA grátis no computador.",
   );
@@ -127,14 +167,21 @@ export function AiSettingsPanel() {
     localStorage.setItem("ceia.localAiModel", localModel);
     localStorage.setItem("ceia.cloudProvider", cloudProvider);
     localStorage.setItem("ceia.cloudFunction", cloudFunction);
+    localStorage.setItem("ceia.apiDirectKey", apiDirectKey.trim());
+    localStorage.setItem("ceia.apiDirectProvider", apiDirectProvider);
+    localStorage.setItem("ceia.apiDirectModel", apiDirectModel);
     setLocalUrl(baseUrl);
     setStatusKind("info");
     setStatus(
       mode === "rules"
         ? "Modo gratuito sem instalação salvo. O sistema continuará usando regras puras."
         : mode === "local"
-          ? "Configuração da IA grátis no computador salva. Agora teste a conexão para validar o Ollama."
-          : "Configuração salva. Esse modo depende de infraestrutura avançada e continua com fallback seguro.",
+          ? "Configuração da IA local salva. Teste a conexão para validar o Ollama."
+          : mode === "openrouter" || mode === "gemini-direct"
+            ? apiDirectKey.trim()
+              ? "Chave de API salva. Clique em Gerar diagnóstico com IA para testar."
+              : "Configure a chave de API para ativar este modo."
+            : "Configuração salva. Este modo usa backend avançado com fallback seguro.",
     );
   }
 
@@ -272,16 +319,19 @@ export function AiSettingsPanel() {
         </div>
         <div className="ai-guide-copy">
           <p>
-            `Sem instalar nada` é a opção mais simples e já funciona agora,
-            totalmente grátis.
+            <strong>Sem instalar nada</strong> — funciona agora, sem custo. Usa o motor de regras.
           </p>
           <p>
-            `IA grátis no computador` é a melhor opção sem custo de API, mas
-            exige instalar e abrir o Ollama.
+            <strong>Ollama local</strong> — melhor custo-benefício sem pagar API. Exige instalar o Ollama.
           </p>
           <p>
-            `IA em nuvem` só vale quando existir backend seguro pronto no
-            Supabase. Não é a opção ideal para começar.
+            <strong>OpenRouter</strong> — uma chave, acesso a Claude, GPT-4o, Llama e outros. Tem modelos grátis. Obtenha sua chave em openrouter.ai.
+          </p>
+          <p>
+            <strong>Google Gemini</strong> — tier gratuito generoso (1.500 req/dia). Obtenha sua chave em aistudio.google.com.
+          </p>
+          <p>
+            <strong>Edge Function</strong> — para quem tem backend Supabase configurado.
           </p>
         </div>
       </div>
@@ -341,6 +391,68 @@ export function AiSettingsPanel() {
         </div>
       )}
 
+      {(mode === "openrouter" || mode === "gemini-direct") && (
+        <div className="ai-local-setup">
+          <div className="ai-setup-callout">
+            <strong>Como configurar a IA com chave de API</strong>
+            {mode === "openrouter" && (
+              <>
+                <span>1. Acesse <strong>openrouter.ai</strong> e crie uma conta gratuita.</span>
+                <span>2. Vá em Keys e gere uma chave de API.</span>
+                <span>3. Cole a chave abaixo e escolha o modelo.</span>
+                <span>4. Modelos com <em>:free</em> não cobram nada.</span>
+              </>
+            )}
+            {mode === "gemini-direct" && (
+              <>
+                <span>1. Acesse <strong>aistudio.google.com</strong> e faça login.</span>
+                <span>2. Clique em <em>Get API Key</em> e copie.</span>
+                <span>3. Cole a chave abaixo. Tier gratuito: 1.500 req/dia.</span>
+              </>
+            )}
+          </div>
+
+          <div className="entry-form ai-entry-form">
+            <label>
+              Chave de API
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type={showApiKey ? "text" : "password"}
+                  value={apiDirectKey}
+                  onChange={(e) => setApiDirectKey(e.target.value)}
+                  placeholder={mode === "openrouter" ? "sk-or-..." : "AIza..."}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={() => setShowApiKey((v) => !v)}
+                  style={{ whiteSpace: "nowrap" }}
+                >
+                  {showApiKey ? "Ocultar" : "Mostrar"}
+                </button>
+              </div>
+            </label>
+            <label>
+              Modelo
+              <select
+                value={apiDirectModel}
+                onChange={(e) => {
+                  setApiDirectModel(e.target.value);
+                  setApiDirectProvider(mode);
+                }}
+              >
+                {(mode === "openrouter" ? openrouterModels : geminiModels).map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+      )}
+
       <div className="ai-actions-row">
         <button className="primary-button" type="button" onClick={saveConfig}>
           <CheckCircle2 size={16} />
@@ -376,13 +488,15 @@ export function AiSettingsPanel() {
             </select>
           </label>
           <label>
-            Provider em nuvem
+            Provider em nuvem (Edge Function)
             <select
               value={cloudProvider}
               onChange={(event) => setCloudProvider(event.target.value)}
             >
               <option value="gemini">Gemini via Edge Function</option>
-              <option value="future">Outro futuro</option>
+              <option value="openai">OpenAI via Edge Function</option>
+              <option value="anthropic">Anthropic via Edge Function</option>
+              <option value="groq">Groq via Edge Function</option>
             </select>
           </label>
           <label>
@@ -405,16 +519,19 @@ export function AiSettingsPanel() {
 
       <div className="ai-mode-notes">
         <span>
-          <CheckCircle2 size={15} /> Grátis imediato: regras puras já analisam
-          a saúde financeira sem depender de IA.
+          <CheckCircle2 size={15} /> Grátis imediato: regras puras analisam a saúde financeira sem depender de IA.
         </span>
         <span>
-          <Brain size={15} /> Grátis com texto mais consultivo: Ollama local no
-          seu computador.
+          <Brain size={15} /> Grátis local: Ollama no seu computador, sem expor dados.
         </span>
         <span>
-          <TriangleAlert size={15} /> Nuvem avançada: só usar depois de preparar
-          uma Edge Function segura no Supabase.
+          <CheckCircle2 size={15} /> OpenRouter: acesso a Claude, GPT-4o, Llama com uma chave — modelos grátis disponíveis.
+        </span>
+        <span>
+          <CheckCircle2 size={15} /> Gemini Direct: tier gratuito do Google (1.500 req/dia). Chave em aistudio.google.com.
+        </span>
+        <span>
+          <TriangleAlert size={15} /> Edge Function: requer backend Supabase configurado.
         </span>
       </div>
     </div>

@@ -821,17 +821,27 @@ export function buildFinancialSummary(
   });
   const dataQualityScore = scoreQuality(dataQualityIssues);
   const dataQualityPenalty = clamp((90 - dataQualityScore) / 90, 0, 1) * 10;
-  const cardLoadPenalty = clamp(cardIncomeRatio - 0.25, 0, 1) * 26;
-  const commitmentPenalty = clamp(committedIncomeRatio - 0.55, 0, 1) * 44;
-  const debtPenalty = clamp(debtRatio - 0.3, 0, 1) * 25;
-  const receivablePenalty = clamp(pendingIncomeRatio - 0.25, 0, 1) * 12;
+  // Thresholds alinhados com as metas exibidas ao usuário e padrões bancários reais.
+  // Penalidades de reserva e saldo são proporcionais à gravidade (não mais fixas).
+  const cardLoadPenalty = clamp(cardIncomeRatio - 0.3, 0, 1) * 22;           // meta 30% exibida
+  const commitmentPenalty = clamp(committedIncomeRatio - 0.7, 0, 1) * 35;    // meta 70% exibida
+  const debtPenalty = clamp(debtRatio - 0.35, 0, 1) * 20;                    // meta 35% exibida
+  const receivablePenalty = clamp(pendingIncomeRatio - 0.25, 0, 1) * 10;     // meta 25% exibida
   const cashPenalty =
     cashShortfall > 0
-      ? clamp(cashShortfall / Math.max(income, 1), 0, 1) * 16
+      ? clamp(cashShortfall / Math.max(income, 1), 0, 1) * 14
       : 0;
   const reserveGap = Math.max(totalOutflow - profile.currentReserve, 0);
-  const reservePenalty = reserveGap > 0 ? 14 : 0;
-  const balancePenalty = projectedBalance < 0 ? 18 : 0;
+  // Proporcional: penalidade máxima (14) somente quando reserva está zerada
+  const reservePenalty =
+    reserveGap > 0
+      ? clamp(reserveGap / Math.max(totalOutflow, 1), 0, 1) * 14
+      : 0;
+  // Proporcional: déficit de R$1 não vale o mesmo que déficit de R$5.000
+  const balancePenalty =
+    projectedBalance < 0
+      ? clamp(Math.abs(projectedBalance) / Math.max(income, 1), 0, 1) * 15
+      : 0;
   const healthScore = Math.round(
     clamp(
       100 -

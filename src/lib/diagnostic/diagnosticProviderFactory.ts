@@ -5,13 +5,18 @@ import type {
   ProviderGenerationResult,
 } from "./types";
 import { cloudProvider } from "./providers/cloudProvider";
+import { geminiDirectProvider } from "./providers/geminiDirectProvider";
 import { mockProvider } from "./providers/mockProvider";
 import { ollamaProvider } from "./providers/ollamaProvider";
+import { openrouterProvider } from "./providers/openrouterProvider";
 import { rulesProvider } from "./providers/rulesProvider";
 
 function readAiMode(): DiagnosticAiMode {
   const configured = localStorage.getItem("ceia.aiMode") || import.meta.env.VITE_AI_MODE || "rules";
-  const allowed: DiagnosticAiMode[] = ["disabled", "rules", "local", "edge-function", "auto", "mock"];
+  const allowed: DiagnosticAiMode[] = [
+    "disabled", "rules", "local", "edge-function", "auto", "mock",
+    "openrouter", "gemini-direct",
+  ];
   return allowed.includes(configured as DiagnosticAiMode) ? configured as DiagnosticAiMode : "rules";
 }
 
@@ -23,9 +28,18 @@ function providersForMode(mode: DiagnosticAiMode): DiagnosticProvider[] {
   if (mode === "disabled" || mode === "rules") return [rulesProvider];
   if (mode === "mock") return [mockProvider];
   if (mode === "local") return [ollamaProvider, rulesProvider];
+  if (mode === "openrouter") return [openrouterProvider, rulesProvider];
+  if (mode === "gemini-direct") return [geminiDirectProvider, rulesProvider];
   if (mode === "edge-function") return [cloudProvider, ollamaProvider, rulesProvider];
-  if (cloudConfigured()) return [cloudProvider, ollamaProvider, rulesProvider];
-  return [ollamaProvider, rulesProvider];
+  // auto: tenta API direta configurada, depois cloud, depois local, depois regras
+  const apiProvider = readApiDirectProvider();
+  const directProvider = apiProvider === "gemini-direct" ? geminiDirectProvider : openrouterProvider;
+  if (cloudConfigured()) return [directProvider, cloudProvider, ollamaProvider, rulesProvider];
+  return [directProvider, ollamaProvider, rulesProvider];
+}
+
+function readApiDirectProvider() {
+  return localStorage.getItem("ceia.apiDirectProvider") || "openrouter";
 }
 
 export async function generateFinancialDiagnosis(

@@ -6,9 +6,17 @@ export type DiagnosticAiMode =
   | "local"
   | "edge-function"
   | "auto"
-  | "mock";
+  | "mock"
+  | "openrouter"
+  | "gemini-direct";
 
-export type DiagnosticProviderName = "rules" | "ollama" | "cloud" | "mock";
+export type DiagnosticProviderName =
+  | "rules"
+  | "ollama"
+  | "cloud"
+  | "mock"
+  | "openrouter"
+  | "gemini-direct";
 
 export interface DiagnosticMainProblem {
   title: string;
