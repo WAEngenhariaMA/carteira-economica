@@ -1,9 +1,11 @@
 import {
   BadgeCheck,
   Brain,
+  CheckCircle2,
   CircleDollarSign,
   Clock3,
   CreditCard,
+  Hourglass,
   ListChecks,
   ReceiptText,
   ShieldAlert,
@@ -298,6 +300,10 @@ export function DashboardPage(props: WorkspacePageProps) {
   const categoryData = categoryTotals(workspace.transactions, competence);
   const directExpenses =
     summary.directFixedExpenses + summary.directVariableExpenses;
+  const totalPaid =
+    summary.paidDirectExpenses +
+    summary.paidCardInvoices +
+    summary.paidLoanInstallments;
   const commitmentValue =
     summary.expectedIncome > 0
       ? formatPercent(summary.committedIncomeRatio)
@@ -428,6 +434,24 @@ export function DashboardPage(props: WorkspacePageProps) {
               : `Faltam ${formatMoney(Math.abs(summary.projectedBalance))} para fechar o mês sem pressão`
           }
           tone={summary.projectedBalance >= 0 ? "good" : "danger"}
+        />
+        <MetricCard
+          icon={CheckCircle2}
+          label="Total Pago no Mês"
+          value={formatMoney(totalPaid)}
+          helper={`Diretas ${formatMoney(summary.paidDirectExpenses)} + faturas ${formatMoney(summary.paidCardInvoices)} + parcelas ${formatMoney(summary.paidLoanInstallments)}`}
+          tone={totalPaid > 0 ? "good" : "neutral"}
+        />
+        <MetricCard
+          icon={Hourglass}
+          label="Falta Pagar"
+          value={formatMoney(summary.monthlyOpenObligations)}
+          helper={
+            summary.monthlyOpenObligations > 0
+              ? `Pendente: despesas ${formatMoney(summary.pendingDirectExpenses)} + faturas abertas ${formatMoney(summary.openCardInvoices)} + dívidas ${formatMoney(summary.debtMonthlyPayments)}`
+              : "Todos os compromissos do mês foram quitados"
+          }
+          tone={summary.monthlyOpenObligations > 0 ? "warn" : "good"}
         />
       </div>
 
